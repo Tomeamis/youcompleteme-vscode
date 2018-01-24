@@ -1,0 +1,57 @@
+{
+    "name": "youcompleteme-vscode",
+    "displayName": "youcompleteme-vscode",
+    "description": "YCMD client form VSCode",
+    "version": "0.0.1",
+    "publisher": "Tomeamis",
+    "engines": {
+        "vscode": "^1.19.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onCommand:extension.sayHello"
+    ],
+    "main": "./out/extension",
+    "contributes": {
+        "configuration":{
+            "type" : "object",
+            "title": "YouCompleteMe configuration",
+            "properties": {
+                "YouCompleteMe.ycmdPath" : {
+                    "type":"string",
+                    "default":"",
+                    "description": "Path to ycmd."
+                },
+                "YouCompleteMe.pythonPath" : {
+                    "type":"string",
+                    "default":"",
+                    "description": "Path to the python interpreter executable."
+                },
+                "YouCompleteMe.filetypes" : {
+                    "type":"string[]",
+                    "default": ["cpp"],
+                    "description": "Filetypes for which YouCompleteMe will work."
+                }
+            }
+        },
+        "commands": [{
+            "command": "extension.sayHello",
+            "title": "Hello World"
+        }]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "npm run compile && node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "typescript": "^2.6.1",
+        "vscode": "^1.1.6",
+        "@types/node": "^7.0.43",
+        "@types/mocha": "^2.2.42"
+    }
+}
