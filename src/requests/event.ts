@@ -1,6 +1,6 @@
 'use strict'
 
-import {YcmLocation, YcmFileDataMap, YcmRange} from './utils'
+import {YcmLocation, YcmFileDataMap, YcmRange, HandleRequestError} from './utils'
 import {YcmServer} from '../server'
 import {Diagnostic, DiagnosticSeverity} from 'vscode'
 
@@ -20,9 +20,23 @@ export class YcmEventNotification extends YcmLocation
 
 	async Send(server: YcmServer): Promise<YcmDiagnosticsResponse>
 	{
-		let pResRaw = server.SendData('/event_notification', this)
-		let res = JSON.parse(await pResRaw)
-		return new YcmDiagnosticsResponse(res)
+		try
+		{
+			let pResRaw = server.SendData('/event_notification', this)
+			let res = await pResRaw
+			return new YcmDiagnosticsResponse(res)
+		}
+		catch(err)
+		{
+			if(await HandleRequestError(err))
+			{
+				return this.Send(server)
+			}
+			else
+			{
+				//TODO: return empty response
+			}
+		}
 	}
 
 }
@@ -39,7 +53,7 @@ export class YcmDiagnosticData
 	{
 		this.ranges = diagnostic.ranges
 		this.location = diagnostic.location
-		this.location_extent = diagnostic.location_extent
+		this.location_extent = YcmRange.FromSimpleObject(diagnostic.location_extent)
 		this.text = diagnostic.text
 		this.kind = diagnostic.kind
 	}

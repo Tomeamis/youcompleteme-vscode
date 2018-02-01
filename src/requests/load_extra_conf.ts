@@ -4,6 +4,7 @@ import {YcmServer} from '../server'
 
 export class YcmLoadExtraConfResponse
 {
+	//TODO: check if this is an ycmd exception response
 	constructor(public err: any)
 	{}
 }
@@ -19,7 +20,7 @@ export class YcmLoadExtraConfRequest
 		try
 		{
 			let resData = await p
-			if(resData != "true")
+			if(resData !== true)
 			{
 				throw "Unexpected server response to YcmLoadExtraConfRequest"
 			}
@@ -27,6 +28,7 @@ export class YcmLoadExtraConfRequest
 		}
 		catch(err)
 		{
+			//TODO: call handler
 			return new YcmLoadExtraConfResponse(err)
 		}
 	}

@@ -1,4 +1,30 @@
-'use strict';
+import { Location, Memento, TextDocumentChangeEvent, TextDocument, Position, workspace, Uri, DiagnosticCollection, ExtensionContext, languages, OutputChannel, window } from "vscode";
+import { YcmServer } from "./server";
+import { YcmLocation } from "./requests/utils";
+import { YcmEventNotification } from "./requests/event";
+import {setTimeout, clearTimeout} from 'timers'
+import { EditCompletionTracker } from "./editCompletionTracker";
+
+'use strict'
+
+export class ExtensionGlobals
+{
+	static editTracker: EditCompletionTracker
+	static extensionOpts: Memento
+	static workingDir: string
+	static diagnostics: DiagnosticCollection
+	static output: OutputChannel
+
+	static Init(context: ExtensionContext)
+	{
+		this.editTracker = new EditCompletionTracker()
+		this.extensionOpts = context.globalState
+		this.diagnostics = languages.createDiagnosticCollection("YouCompleteMe")
+		this.output = window.createOutputChannel("YouCompleteMe");
+		context.subscriptions.push(this.diagnostics, this.output)
+	}
+
+}
 
 export enum LogLevel
 {
@@ -8,6 +34,7 @@ export enum LogLevel
 	WARNING,
 	INFO,
 	DEBUG,
+	TRACE,
 	ALL
 }
 
@@ -21,48 +48,75 @@ export class Log
 		Log.level = level;
 	}
 
+	static Trace(...args): void
+	{
+		Log.WriteLog(LogLevel.TRACE, ...args)
+	}
+
 	static Debug(...args) : void
 	{
-		if(Log.level >= LogLevel.DEBUG)
-		{
-			args.unshift("DEBUG: ");
-			console.log.apply(console, args);
-		}
+		Log.WriteLog(LogLevel.DEBUG, ...args)
 	}
 
 	static Info(...args) : void
 	{
-		if(Log.level >= LogLevel.INFO)
-		{
-			args.unshift("INFO: ");
-			console.log.apply(console, args);
-		}
+		Log.WriteLog(LogLevel.INFO, ...args)
 	}
 
 	static Warning(...args) : void
 	{
-		if(Log.level >= LogLevel.WARNING)
-		{
-			args.unshift("WARNING: ");
-			console.log.apply(console, args);
-		}
+		Log.WriteLog(LogLevel.WARNING, ...args)
 	}
 
 	static Error(...args) : void
 	{
-		if(Log.level >= LogLevel.ERROR)
-		{
-			args.unshift("ERROR: ");
-			console.log.apply(console, args);
-		}
+		Log.WriteLog(LogLevel.ERROR, ...args)
 	}
 
 	static Fatal(...args) : void
 	{
-		if(Log.level >= LogLevel.FATAL)
+		Log.WriteLog(LogLevel.FATAL, ...args)
+	}
+
+	static WriteLog(level: LogLevel, ...args)
+	{
+		if(Log.level >= level)
 		{
-			args.unshift("FATAL: ");
-			console.log.apply(console, args);
+			switch(level)
+			{
+			case LogLevel.TRACE:
+				args.unshift("TRACE: ")
+				break
+			case LogLevel.DEBUG:
+				args.unshift("DEBUG: ")
+				break
+			case LogLevel.INFO:
+				args.unshift("INFO: ")
+				break
+			case LogLevel.WARNING:
+				args.unshift("WARNING: ")
+				break
+			case LogLevel.ERROR:
+				args.unshift("ERROR: ")
+				break
+			case LogLevel.FATAL:
+				args.unshift("FATAL: ")
+				break
+			}
+			args.unshift(new Date())
+			args.forEach(x => {
+				let toPrint: string
+				if(typeof x === "string")
+				{
+					toPrint = x
+				}
+				else
+				{
+					toPrint = JSON.stringify(x)
+				}
+				ExtensionGlobals.output.append(toPrint);
+			})
+			ExtensionGlobals.output.appendLine("")
 		}
 	}
 	

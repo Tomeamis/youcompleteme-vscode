@@ -10,7 +10,7 @@ export class YcmHealthyResponse
 {
 
 	public err: any
-
+	//TODO: check if this is an ycmd exception response
 	constructor(e)
 	{
 		this.err = e

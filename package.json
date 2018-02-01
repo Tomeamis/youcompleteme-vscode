@@ -11,7 +11,7 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:extension.sayHello"
+        "*"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -33,6 +33,16 @@
                     "type":"string[]",
                     "default": ["cpp"],
                     "description": "Filetypes for which YouCompleteMe will work."
+                },
+                "YouCompleteMe.triggerStrings" : {
+                    "type":"string[]",
+                    "default": ["->", ".", "::", "/"],
+                    "description": "The trigger char sequences for Ycmd to complete"
+                },
+                "YouCompleteMe.reparseTimeout" : {
+                    "type":"number",
+                    "default": 250,
+                    "description": "The inactivity time after which the current document will be reparsed (in ms)"
                 }
             }
         },

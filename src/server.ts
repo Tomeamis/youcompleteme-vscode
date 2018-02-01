@@ -7,10 +7,11 @@ import * as Path from 'path';
 import {randomBytes, Hmac, createHmac, createHash} from 'crypto'
 import * as Fs from 'fs'
 import {tmpdir as GetTempDirPath} from 'os'
-import {Log} from './utils'
+import {Log, ExtensionGlobals} from './utils'
 import * as Http from 'http'
 import { resolve } from 'url';
 import * as QueryString from 'querystring'
+import { YcmSettings } from './ycmConfig';
 
 export type YcmdPath = 
 	'/completions' |
@@ -86,8 +87,8 @@ function GetTempFile(prefix: string, remainingAttempts = 10): Promise<[number, s
 
 async function MakeYcmdSettings(ycmdPath: string, workingDir: string, secret: string)
 {
-	let pDefaults = LoadYcmdDefaultSettings(ycmdPath)
-	let pLocal = LoadYcmdLocalSettings(workingDir)
+	let pDefaults = YcmSettings.LoadDefault()
+	let pLocal = YcmSettings.LoadLocal()
 	let [defaults, local] = await Promise.all([pDefaults, pLocal])
 	//override the defaults
 	Object.keys(local).forEach(key => defaults[key] = local[key]);
@@ -95,44 +96,7 @@ async function MakeYcmdSettings(ycmdPath: string, workingDir: string, secret: st
 	return defaults
 }
 
-async function LoadYcmdDefaultSettings(ycmdPath: string)
-{
-	return LoadJSONFile(Path.resolve(ycmdPath, "ycmd/default_settings.json"))
-}
 
-function LoadYcmdLocalSettings(workspacePath: string): Promise<any>
-{
-	let pJson = LoadJSONFile(Path.resolve(workspacePath, ".vscode", "ycmd_settings.json"))
-	return new Promise<any>(resolve => {
-		pJson.then(result => {
-			resolve(result)
-		})
-		//if it fails, just return empty object
-		pJson.catch(e => {
-			resolve({})
-			Log.Info("Failed to load local settings from folder ", workspacePath)
-			Log.Info("Reason: ", e)
-		});
-	});
-}
-
-async function LoadJSONFile(path: string)
-{
-	let pData = new Promise<string>((resolve, reject) => {
-		Fs.readFile(path, "utf-8", (err, data) => {
-			if(err)
-			{
-				reject(err)
-			}
-			else
-			{
-				resolve(data)
-			}
-		})
-	})
-	
-	return JSON.parse(await pData);
-}
 
 export class YcmServer
 {
@@ -153,90 +117,100 @@ export class YcmServer
 
 	private static async SetupServer(workingDir : string): Promise<YcmServer> {
 		YcmServer.alive = true
-		let ycmdPath = workspace.getConfiguration("YouCompleteMe").get("ycmdPath") as string;
-		let options = {
-			cwd: workingDir,
-			env: process.env,
-			shell: true,
-			windowsVerbatimArguments: true,
-			windowsHide: true
-		}
-		//get unused port
-		let server = Net.createServer();
-		let pPort = new Promise<number>(resolve => {
-			server.listen(
-				{host: "localhost", port: 0, exclusive: true},
-				() => {
-					resolve(server.address().port)
-					server.close()
-				}
-			)
-		})
-		let secret = randomBytes(16)
-		let pOptFile = MakeYcmdSettingsFile(ycmdPath, workingDir, secret.toString('base64'))
-		let [port, optFile] = await Promise.all([pPort, pOptFile])
-		let args = [
-			Path.resolve(ycmdPath, "ycmd"),
-			`"--port=${port}"`,
-			`"--options_file=${optFile}"`,
-			//stay alive for 15 minutes
-			`--idle_suicide_seconds=900`
-		]
-		//TODO: implement a keepalive pinger
-		
-		let pythonPath = workspace.getConfiguration("YouCompleteMe").get("pythonPath") as string
-		let cp = ChildProcess.spawn(`"${pythonPath}"`, args, options)
-		if(cp.pid)
+		try
 		{
-			Log.Info("Ycmd started successfully. PID: ", cp.pid)
-		}
-		else
-		{
-			Log.Error("Failed to start Ycmd.")
-			throw "Failed to start Ycmd process"
-		}
-		cp.stderr.on("data", (chunk: Buffer) => {
-			Log.Info("Ycmd stderr: ", chunk.toString('utf-8'));
-		})
-		cp.stdout.on("data", (chunk: Buffer) => {
-			Log.Info("Ycmd stdout: ", chunk.toString('utf-8'));
-		})
-		cp.on("exit", (code, signal) => {
-			YcmServer.alive = false
-			if(signal)
-			{
-				Log.Error("Ycmd ended with signal ", signal)
+			let ycmdPath = workspace.getConfiguration("YouCompleteMe").get("ycmdPath") as string;
+			let options = {
+				cwd: workingDir,
+				env: process.env,
+				shell: true,
+				windowsVerbatimArguments: true,
+				windowsHide: true
 			}
-			else if(code)
+			//get unused port
+			let server = Net.createServer();
+			let pPort = new Promise<number>(resolve => {
+				server.listen(
+					{host: "localhost", port: 0, exclusive: true},
+					() => {
+						resolve(server.address().port)
+						server.close()
+					}
+				)
+			})
+			let secret = randomBytes(16)
+			let pOptFile = MakeYcmdSettingsFile(ycmdPath, workingDir, secret.toString('base64'))
+			let [port, optFile] = await Promise.all([pPort, pOptFile])
+			let args = [
+				Path.resolve(ycmdPath, "ycmd"),
+				`"--port=${port}"`,
+				`"--options_file=${optFile}"`,
+				//stay alive for 15 minutes
+				`--idle_suicide_seconds=900`
+			]
+			//TODO: implement a keepalive pinger
+			
+			let pythonPath = workspace.getConfiguration("YouCompleteMe").get("pythonPath") as string
+			let cp = ChildProcess.spawn(`"${pythonPath}"`, args, options)
+			if(cp.pid)
 			{
-				let msg: string
-				switch(code)
+				Log.Info("Ycmd started successfully. PID: ", cp.pid)
+			}
+			else
+			{
+				Log.Error("Failed to start Ycmd.")
+				throw "Failed to start Ycmd process"
+			}
+			cp.stderr.on("data", (chunk: Buffer) => {
+				Log.Info("Ycmd stderr: ", chunk.toString('utf-8'));
+			})
+			cp.stdout.on("data", (chunk: Buffer) => {
+				Log.Info("Ycmd stdout: ", chunk.toString('utf-8'));
+			})
+			cp.on("exit", (code, signal) => {
+				YcmServer.alive = false
+				if(signal)
 				{
-					case 0: Log.Info("Ycmd normal exit"); break;
-					case 3: msg = "unexpected error while loading the library"; break;
-					case 4: msg = "the ycm_core library is missing"; break;
-					case 5: msg = "the ycm_core library is compiled for Python 3 but loaded in Python 2"; break;
-					case 6: msg = "the ycm_core library is compiled for Python 2 but loaded in Python 3"; break;
-					case 7: msg = "the version of the ycm_core library is outdated."; break;
-					default: msg = "unknown error"; break;
+					Log.Error("Ycmd ended with signal ", signal)
 				}
-				Log.Error("Ycmd exit: ", msg);
-			}
-		})
-		return new YcmServer(secret, port);
+				else if(code)
+				{
+					let msg: string
+					switch(code)
+					{
+						case 0: Log.Info("Ycmd normal exit"); break;
+						case 3: msg = "unexpected error while loading the library"; break;
+						case 4: msg = "the ycm_core library is missing"; break;
+						case 5: msg = "the ycm_core library is compiled for Python 3 but loaded in Python 2"; break;
+						case 6: msg = "the ycm_core library is compiled for Python 2 but loaded in Python 3"; break;
+						case 7: msg = "the version of the ycm_core library is outdated."; break;
+						default: msg = "unknown error"; break;
+					}
+					Log.Error("Ycmd exit: ", msg);
+				}
+			})
+			return new YcmServer(secret, port);
+		}
+		catch(err)
+		{
+			//error happened, server is not alive
+			YcmServer.alive = false
+			//not handled, just rethrow
+			throw err
+		}
 	}
 
-	public static async GetInstance(workingDir: string)
+	public static async GetInstance()
 	{
 		if(!YcmServer.alive)
 		{
-			YcmServer.instance = YcmServer.SetupServer(workingDir)
+			YcmServer.instance = YcmServer.SetupServer(ExtensionGlobals.workingDir)
 		}
 		//TODO: timeout?
 		return YcmServer.instance;
 	}
 
-	public SendData(path: YcmdPath, data: any): Promise<string>
+	public SendData(path: YcmdPath, data: any): Promise<any>
 	{
 		let method: string
 		let body: string
@@ -271,7 +245,7 @@ export class YcmServer
 		}
 		options.headers[YcmServer.hmacHeader] = hmac.toString('base64')
 		let req: Http.ClientRequest
-		let result = new Promise<string>((resolve, reject) => {
+		let result = new Promise<any>((resolve, reject) => {
 			req = Http.request(options, res => {
 				let buf = new Buffer(0)
 				res.on('data', (data: Buffer) => buf = Buffer.concat([buf, data]));
@@ -287,11 +261,11 @@ export class YcmServer
 							let resBody = buf.toString('utf-8')
 							if(res.statusCode == 200)
 							{
-								resolve(resBody)
+								resolve(JSON.parse(resBody))
 							}
 							else
 							{
-								reject(resBody)
+								reject(JSON.parse(resBody))
 							}
 						}
 					}
@@ -303,7 +277,8 @@ export class YcmServer
 				res.on('error', err => reject(err))
 			})
 		})
-		Log.Debug("Sending data to server: ", body)
+		Log.Debug(`Sending data to ${path}: `)
+		Log.Trace(data)
 		req.write(body, 'utf-8')
 		req.end()
 		return result

@@ -1,9 +1,14 @@
 'use strict'
 
-import {workspace, Position, TextDocument, Memento, Range} from 'vscode'
+import {workspace, Position, TextDocument, Memento, Range, window} from 'vscode'
 import {YcmServer} from '../server'
+import { YcmLoadExtraConfRequest } from './load_extra_conf';
+import { Log } from '../utils';
+import { setTimeout } from 'timers';
+import * as fs from 'fs'
+import { YcmSettings } from '../ycmConfig';
 
-type VscodeLoc = {pos: Position, doc: TextDocument}
+class VscodeLoc {pos: Position; doc: TextDocument}
 
 export class YcmFileDataMap
 {
@@ -113,7 +118,7 @@ export class YcmLocation
 
 	public GetVscodePosition(): VscodeLoc
 	{
-		let result: VscodeLoc
+		let result = new VscodeLoc
 		let lineNum = this.line_num-1
 		result.doc = workspace.textDocuments.find((val: TextDocument) => {
 			return val.fileName == this.filepath
@@ -130,9 +135,14 @@ function YcmOffsetToStringOffset(text: string, offset: number): number
 	let bytes = Buffer.from(text, 'utf-8')
 	//go to 0-based
 	offset -= 1
-	if(offset >= text.length)
+	if(offset > bytes.length)
 	{
 		throw "Offset greater than input length"
+	}
+	//if offset points to end of buffer, return end of string
+	else if(offset == bytes.length)
+	{
+		return text.length
 	}
 	let curOffset = 0
 	for(let pos = 0; pos < offset; pos += 1)
@@ -147,11 +157,17 @@ function YcmOffsetToStringOffset(text: string, offset: number): number
 
 function StringOffsetToYcmOffset(text: string, offset: number): number
 {
-	if(text.length <= offset)
+	if(text.length < offset)
 	{
 		throw "Offset greater than input length"
 	}
 	let bytes = Buffer.from(text, 'utf-8')
+	//if offset points to end of string, return end of buffer
+	if(text.length == offset)
+	{
+		//+1 for 1-based indexing
+		return bytes.length+1
+	}
 	let pos = 0
 	//last +1 takes care of 1-based indexing
 	for(let curOffset = 0; curOffset <= offset; pos += 1)
@@ -162,4 +178,74 @@ function StringOffsetToYcmOffset(text: string, offset: number): number
 		}
 	}
 	return pos
+}
+
+interface YcmExceptionResponse
+{
+	exception: any
+	message: string
+	traceback: string
+}
+
+function isYcmExceptionResponse(arg: any): arg is YcmExceptionResponse
+{
+	return 'exception' in arg &&
+	'message' in arg &&
+	'traceback' in arg
+}
+
+/**
+ * Tries to handle an error received from the server.
+ * If the request should be retried, returns true
+ * If the error should be logged/displayed, rethrows it
+ * 
+ * @param err The error as an object
+ * @returns True if the request should be retried, false otherwise
+ */
+export async function HandleRequestError(err): Promise<boolean>
+{
+	//check if the type matches
+	if(!isYcmExceptionResponse(err))
+	{
+		//type does not match, just return
+		throw err;
+	}
+	let type = err.exception['TYPE']
+	if(type == "UnknownExtraConf")
+	{
+		let filename = err.exception['extra_conf_file']
+		//ask what to do
+		let choice = await window.showErrorMessage(err.message, "Load", "Load and remember", "Blacklist");
+		if(typeof choice == "undefined")
+		{
+			return false
+		}
+		if(choice == "Load and remember")
+		{
+			YcmSettings.RememberLocalYcmFile(filename, false)
+		}
+		else if(choice == "Blacklist")
+		{
+			YcmSettings.RememberLocalYcmFile(filename, true)
+		}
+		//load the file
+		if(choice.startsWith("Load"))
+		{
+			let extraConfReq = new YcmLoadExtraConfRequest(filename)
+			let extraConfLoaded = await extraConfReq.Send(await YcmServer.GetInstance())
+			if(extraConfLoaded.err)
+			{
+				return HandleRequestError(extraConfLoaded.err)
+			}
+			else
+			{
+				return true
+			}
+		}
+	}
+	else
+	{
+		Log.Error("HandleRequestError: Unknown error: ", err)
+		throw err
+	}
 }
