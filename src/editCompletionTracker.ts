@@ -1,4 +1,4 @@
-import { Location, TextDocumentChangeEvent, workspace, Position, TextDocument } from "vscode";
+import { Location, TextDocumentChangeEvent, workspace, Position, TextDocument, Diagnostic } from "vscode";
 import { Log, ExtensionGlobals } from "./utils";
 import { YcmServer } from "./server";
 import { YcmLocation } from "./requests/utils";
@@ -170,10 +170,12 @@ export class EditCompletionTracker
 				let response = await pResponse
 				Log.Debug("FileReadyToParse response: ")
 				Log.Trace(response)
+				let diagnostics: Diagnostic[] = []
 				if(response.diagnostics)
 				{
-					ExtensionGlobals.diagnostics.set(document.uri, response.diagnostics.map(x => x.ToVscodeDiagnostic()))
+					diagnostics = response.diagnostics.map(x => x.ToVscodeDiagnostic())
 				}
+				ExtensionGlobals.diagnostics.set(document.uri, diagnostics)
 			}
 			catch(err)
 			{
