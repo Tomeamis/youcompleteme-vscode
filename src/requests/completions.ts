@@ -147,7 +147,7 @@ export class YcmCandidate
 			vscodeKind = CompletionItemKind.Module;
 			break;
 		}
-		let label = this.menu_text ? this.menu_text : this.insertion_text
+		let label = this.insertion_text
 		let result = new CompletionItem(label, vscodeKind)
 		result.insertText = this.insertion_text
 		if(this.detailed_info)

@@ -38,6 +38,29 @@ export enum LogLevel
 	ALL
 }
 
+export function LogLevelFromString(str: string): LogLevel
+{
+	switch(str)
+	{
+		case "none":
+			return LogLevel.NONE
+		case "fatal":
+			return LogLevel.FATAL
+		case "error":
+			return LogLevel.ERROR
+		case "warning":
+			return LogLevel.WARNING
+		case "info":
+			return LogLevel.INFO
+		case "debug":
+			return LogLevel.DEBUG
+		case "trace":
+			return LogLevel.TRACE
+		case "all":
+			return LogLevel.ALL
+	}
+}
+
 export class Log
 {
 

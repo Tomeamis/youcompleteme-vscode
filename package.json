@@ -43,6 +43,12 @@
                     "type":"number",
                     "default": 250,
                     "description": "The inactivity time after which the current document will be reparsed (in ms)"
+                },
+                "YouCompleteMe.logLevel" : {
+                    "type":"string",
+                    "default": "info",
+                    "description": "Controls log verbosity",
+                    "enum": ["all", "trace", "debug", "info", "warning", "error", "fatal", "none"]
                 }
             }
         },
