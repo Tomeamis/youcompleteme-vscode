@@ -28,13 +28,17 @@ export function activate(context: vscode.ExtensionContext) {
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	Log.Info('Congratulations, your extension "youcompleteme-vscode" is now active!');
-	
+
 	//TODO: handle nonexistence
 	ExtensionGlobals.workingDir = vscode.workspace.workspaceFolders[0].uri.fsPath
 
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
 	// The commandId parameter must match the command field in package.json
+
+	let disposable: vscode.Disposable
+
+	/*
 	let disposable = vscode.commands.registerCommand('extension.sayHello', () => {
 		// The code you place here will be executed every time your command is executed
 
@@ -43,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
 		
 	})
 
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(disposable);*/
 
 	let filetypes = workspace.getConfiguration("YouCompleteMe").get("filetypes") as string[]
 	let editTracker = ExtensionGlobals.editTracker

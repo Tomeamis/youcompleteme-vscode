@@ -1,14 +1,21 @@
 # youcompleteme-vscode README
 
-This is the README for extension "youcompleteme-vscode". Sure is
+This is the README for extension "youcompleteme-vscode". TODO. So much TODO
+
+For now, much can be found out at https://github.com/Valloric/YouCompleteMe
+
+This extension is very much a work in (slow) progress
 
 ## Features
 
-Completion
+- Code completion
+- Go to definition
+- Linting
 
-Yada yada
+## Planned features
 
->Whatever
+- Hover provider
+- ...
 
 ## Requirements
 
@@ -16,13 +23,8 @@ None that I know of
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
 This extension contributes the following settings:
 
-* `something or other`: whatever
 * `YouCompleteMe.ycmdPath`: Path to ycmd
 * `YouCompleteMe.pythonPath`: python path
 * `YouCompleteMe.filetypes`: filetypes foor completion
@@ -31,12 +33,8 @@ This extension contributes the following settings:
 
 ## Known Issues
 
-So far none
+See Github issues
 
-## Release Notes
+## Other
 
-Yay!
-
-### 1.0.0
-
-Not quite there yet
+This is the first thing I am publishing, so please, excuse the mess.

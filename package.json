@@ -1,9 +1,13 @@
 {
     "name": "youcompleteme-vscode",
     "displayName": "youcompleteme-vscode",
-    "description": "YCMD client form VSCode",
-    "version": "0.0.1",
+    "description": "YCMD client for VSCode",
+    "version": "0.1.0",
     "publisher": "Tomeamis",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Tomeamis/youcompleteme-vscode"
+    },
     "engines": {
         "vscode": "^1.19.0"
     },
@@ -52,10 +56,7 @@
                 }
             }
         },
-        "commands": [{
-            "command": "extension.sayHello",
-            "title": "Hello World"
-        }]
+        "commands": []
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",

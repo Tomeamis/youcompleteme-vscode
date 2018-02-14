@@ -31,6 +31,7 @@ export class YcmCompletionProvider implements CompletionItemProvider
 	{
 		Log.Debug("provideCompletionItems: start")
 		//if trigger char, figure out if we should really be triggered
+		//TODO: trigger on " and <, only complete if part of include directive
 		if(context.triggerKind == CompletionTriggerKind.TriggerCharacter)
 		{
 			let lineToCursor = document.getText(new Range(position.with({character: 0}), position))
