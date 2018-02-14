@@ -1,14 +1,24 @@
 'use strict'
 
-import {workspace, Position, TextDocument, Memento, Range, window} from 'vscode'
+import {workspace, Position, TextDocument, Memento, Range, window, Location, Uri} from 'vscode'
 import {YcmServer} from '../server'
 import { YcmLoadExtraConfRequest } from './load_extra_conf';
 import { Log } from '../utils';
 import { setTimeout } from 'timers';
 import * as fs from 'fs'
+import * as readline from 'readline'
 import { YcmSettings } from '../ycmConfig';
 
-class VscodeLoc {pos: Position; doc: TextDocument}
+export class VscodeLoc 
+{
+	pos: Position
+	filename: string
+
+	public ToVscodeLocation()
+	{
+		return new Location(Uri.file(this.filename), this.pos);
+	}
+}
 
 export class YcmFileDataMap
 {
@@ -68,9 +78,10 @@ export class YcmRange
 		)
 	}
 
-	public ToVscodeRange(): Range
+	public async ToVscodeRange(): Promise<Range>
 	{
-		return new Range(this.start.GetVscodePosition().pos, this.end.GetVscodePosition().pos)
+		let [start, end] = await Promise.all([this.start.GetVscodePosition(), this.end.GetVscodePosition()])
+		return new Range(start.pos, end.pos)
 	}
 
 	public GetFile(): string
@@ -116,16 +127,54 @@ export class YcmLocation
 		return new YcmLocation(obj.line_num, obj.column_num, obj.filepath)
 	}
 
-	public GetVscodePosition(): VscodeLoc
+	public async GetVscodePosition(): Promise<VscodeLoc>
 	{
 		let result = new VscodeLoc
 		let lineNum = this.line_num-1
-		result.doc = workspace.textDocuments.find((val: TextDocument) => {
-			return val.fileName == this.filepath
-		})
-		let lineText = result.doc.lineAt(lineNum).text
-		let charIndex = YcmOffsetToStringOffset(lineText, this.column_num)
-		result.pos = new Position(lineNum, charIndex);
+		result.filename = this.filepath
+		if(this.column_num <= 2)
+		{
+			result.pos = new Position(lineNum, this.column_num-1)
+		}
+		else
+		{
+			let doc = workspace.textDocuments.find((val: TextDocument) => {
+				return val.fileName == this.filepath
+			})
+			let lineText: string
+			if(doc)
+			{
+				lineText = doc.lineAt(lineNum).text
+			}
+			else
+			{
+				let stream = fs.createReadStream(this.filepath, {encoding: "utf-8"})
+				let reader = readline.createInterface(stream)
+				let counter = 0
+				let success = false
+				let pLine = new Promise<string>((resolve, reject) => {
+					reader.on("line", (line: string) => {
+						counter += 1
+						if(counter == this.line_num)
+						{
+							resolve(line)
+							success = true
+							reader.close()
+							stream.close()
+						}
+					})
+					reader.on("close", () => {
+						if(!success)
+						{
+							reject("Unexpected end of file in GetVscodePosition")
+						}
+					})
+				})
+				lineText = await pLine
+			}
+			let charIndex = YcmOffsetToStringOffset(lineText, this.column_num)
+			result.pos = new Position(lineNum, charIndex);
+		}
 		return result
 	}
 }

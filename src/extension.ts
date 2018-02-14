@@ -10,13 +10,16 @@ import {YcmHealthyRequest} from './requests/healthy'
 import {YcmCompletionsRequest, YcmCompletionProvider} from './requests/completions'
 import { YcmLocation } from './requests/utils';
 import {YcmEventNotification} from './requests/event'
-import { Location, Position, workspace, window } from 'vscode';
+import { Location, Position, workspace, window, languages } from 'vscode';
 import * as timers from 'timers'
+import { YcmDefinitionProvider } from './requests/completerCommand';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
+
+	ExtensionGlobals.Init(context)
 	{
 		let levelStr = workspace.getConfiguration("YouCompleteMe").get("logLevel") as string
 		Log.SetLevel(LogLevelFromString(levelStr));
@@ -24,9 +27,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "youcompleteme-vscode" is now active!');
-
-	ExtensionGlobals.Init(context)
+	Log.Info('Congratulations, your extension "youcompleteme-vscode" is now active!');
+	
 	//TODO: handle nonexistence
 	ExtensionGlobals.workingDir = vscode.workspace.workspaceFolders[0].uri.fsPath
 
@@ -40,7 +42,6 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Hello World!');
 		
 	})
-	
 
 	context.subscriptions.push(disposable);
 
@@ -59,11 +60,14 @@ export function activate(context: vscode.ExtensionContext) {
 	
 	let triggers = workspace.getConfiguration("YouCompleteMe").get("triggerStrings") as string[]
 	disposable = vscode.languages.registerCompletionItemProvider(
-		filetypes, //TODO: from settings
+		filetypes,
 		new YcmCompletionProvider(triggers),
 		//VScode uses first char, we want last
 		...triggers.map(seq => seq.slice(-1))
 	);
+	context.subscriptions.push(disposable)
+
+	disposable = languages.registerDefinitionProvider(filetypes, new YcmDefinitionProvider)
 	context.subscriptions.push(disposable)
 
 }

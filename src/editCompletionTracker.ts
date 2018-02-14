@@ -173,7 +173,7 @@ export class EditCompletionTracker
 				let diagnostics: Diagnostic[] = []
 				if(response.diagnostics)
 				{
-					diagnostics = response.diagnostics.map(x => x.ToVscodeDiagnostic())
+					diagnostics = await Promise.all(response.diagnostics.map(x => x.ToVscodeDiagnostic()))
 				}
 				ExtensionGlobals.diagnostics.set(document.uri, diagnostics)
 			}

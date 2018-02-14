@@ -58,10 +58,10 @@ export class YcmDiagnosticData
 		this.kind = diagnostic.kind
 	}
 
-	public ToVscodeDiagnostic()
+	public async ToVscodeDiagnostic()
 	{
 		return new Diagnostic(
-			this.location_extent.ToVscodeRange(), 
+			await this.location_extent.ToVscodeRange(), 
 			this.text,
 			this.kind === "WARNING" ? DiagnosticSeverity.Warning : DiagnosticSeverity.Error
 		)

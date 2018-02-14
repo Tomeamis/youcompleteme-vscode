@@ -58,7 +58,7 @@ export class YcmCompletionProvider implements CompletionItemProvider
 
 		let compResult = await req.Send(await pServer)
 		//TODO: figure out if the list is really incomplete
-		let result = new CompletionList(compResult.candidates.map(x => x.ToVscodeCompletionItem()), true);
+		let result = new CompletionList(await Promise.all(compResult.candidates.map(x => x.ToVscodeCompletionItem())), true);
 		
 		return result;
 	}
@@ -111,7 +111,7 @@ export class YcmCandidate
 		this.extra_data = obj.extra_data
 	}
 
-	ToVscodeCompletionItem(): CompletionItem
+	async ToVscodeCompletionItem(): Promise<CompletionItem>
 	{
 		let vscodeKind: CompletionItemKind
 		switch(this.kind)
@@ -158,7 +158,7 @@ export class YcmCandidate
 		{
 			result.detail = this.extra_menu_info
 		}
-		result.range = this.completionRange.ToVscodeRange()
+		result.range = await this.completionRange.ToVscodeRange()
 		return result
 	}
 
