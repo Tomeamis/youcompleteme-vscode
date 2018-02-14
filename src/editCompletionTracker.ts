@@ -120,7 +120,14 @@ export class EditCompletionTracker
 
 	ShouldCompleteSemantic(doc: TextDocument, pos: Position)
 	{
+		Log.Debug("Completing semantic: ", this.completingSemantic)
 		this.completingSemantic = !this.IsCompletionInvokedByEdit(doc, pos) || this.completingSemantic
+		return this.completingSemantic
+	}
+
+	IsCompletingSemantic(): boolean
+	{
+		Log.Debug("IsCompletingSemantic: ", this.completingSemantic)
 		return this.completingSemantic
 	}
 

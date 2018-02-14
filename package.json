@@ -2,8 +2,9 @@
     "name": "youcompleteme-vscode",
     "displayName": "youcompleteme-vscode",
     "description": "YCMD client for VSCode",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "publisher": "Tomeamis",
+    "license": "MIT",
     "repository": {
         "type": "git",
         "url": "https://github.com/Tomeamis/youcompleteme-vscode"
@@ -19,40 +20,56 @@
     ],
     "main": "./out/extension",
     "contributes": {
-        "configuration":{
-            "type" : "object",
+        "configuration": {
+            "type": "object",
             "title": "YouCompleteMe configuration",
             "properties": {
-                "YouCompleteMe.ycmdPath" : {
-                    "type":"string",
-                    "default":"",
+                "YouCompleteMe.ycmdPath": {
+                    "type": "string",
+                    "default": "",
                     "description": "Path to ycmd."
                 },
-                "YouCompleteMe.pythonPath" : {
-                    "type":"string",
-                    "default":"",
+                "YouCompleteMe.pythonPath": {
+                    "type": "string",
+                    "default": "",
                     "description": "Path to the python interpreter executable."
                 },
-                "YouCompleteMe.filetypes" : {
-                    "type":"string[]",
-                    "default": ["cpp"],
+                "YouCompleteMe.filetypes": {
+                    "type": "string[]",
+                    "default": [
+                        "cpp"
+                    ],
                     "description": "Filetypes for which YouCompleteMe will work."
                 },
-                "YouCompleteMe.triggerStrings" : {
-                    "type":"string[]",
-                    "default": ["->", ".", "::", "/"],
+                "YouCompleteMe.triggerStrings": {
+                    "type": "string[]",
+                    "default": [
+                        "->",
+                        ".",
+                        "::",
+                        "/"
+                    ],
                     "description": "The trigger char sequences for Ycmd to complete"
                 },
-                "YouCompleteMe.reparseTimeout" : {
-                    "type":"number",
+                "YouCompleteMe.reparseTimeout": {
+                    "type": "number",
                     "default": 250,
                     "description": "The inactivity time after which the current document will be reparsed (in ms)"
                 },
-                "YouCompleteMe.logLevel" : {
-                    "type":"string",
+                "YouCompleteMe.logLevel": {
+                    "type": "string",
                     "default": "info",
                     "description": "Controls log verbosity",
-                    "enum": ["all", "trace", "debug", "info", "warning", "error", "fatal", "none"]
+                    "enum": [
+                        "all",
+                        "trace",
+                        "debug",
+                        "info",
+                        "warning",
+                        "error",
+                        "fatal",
+                        "none"
+                    ]
                 }
             }
         },

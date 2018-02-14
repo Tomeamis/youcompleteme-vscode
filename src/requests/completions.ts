@@ -53,6 +53,11 @@ export class YcmCompletionProvider implements CompletionItemProvider
 				options.forceSemantic = true
 			}
 		}
+		//TODO: update when they release new typings
+		else if(context.triggerKind === 2)
+		{
+			options.forceSemantic = tracker.IsCompletingSemantic()
+		}
 		tracker.CompletionRequestDone()
 		
 		let req = new YcmCompletionsRequest(YcmLocation.FromVscodePosition(document, position), options);
