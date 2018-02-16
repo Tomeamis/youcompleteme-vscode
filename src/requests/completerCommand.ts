@@ -40,13 +40,14 @@ export class CompleterCommandRequest extends YcmLocation
 		}
 		catch(err)
 		{
-			if(HandleRequestError(err))
+			if(await HandleRequestError(err))
 			{
 				return this.Send(server)
 			}
 			else
 			{
-				throw err
+				//just false, return null
+				return null
 			}
 		}
 	}
@@ -87,7 +88,11 @@ export class YcmGoToRequest extends CompleterCommandRequest
 	public async Send(server: YcmServer): Promise<YcmGoToResponse>
 	{
 		let res = await super.Send(server)
-		if(!(res instanceof YcmGoToResponse))
+		if(res === null)
+		{
+			return null
+		}
+		else if(!(res instanceof YcmGoToResponse))
 		{
 			Log.Error("GoToRequest returned unexpected response type: ", res)
 			throw "GoTo request got unexpected type of response"
@@ -108,6 +113,11 @@ export class YcmDefinitionProvider implements DefinitionProvider
 			let req = new YcmGoToRequest(YcmLocation.FromVscodePosition(document, position))
 			let pResponse = req.Send(await pServer)
 			let response = await pResponse
+			if(response === null)
+			{
+				Log.Info("Definition not found");
+				return null
+			}
 			return (await response.loc.GetVscodePosition()).ToVscodeLocation()
 		}
 		catch(err)

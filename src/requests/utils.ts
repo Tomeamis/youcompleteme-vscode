@@ -292,6 +292,19 @@ export async function HandleRequestError(err): Promise<boolean>
 			}
 		}
 	}
+	else if(type == "RuntimeError")
+	{
+		if(err.message == "Can't jump to definition or declaration.")
+		{
+			Log.Info("GoTo lookup failed");
+			return false
+		}
+		else
+		{
+			Log.Error("HandleRequestError: Unknown runtime error: ", err)
+			throw err
+		}
+	}
 	else
 	{
 		Log.Error("HandleRequestError: Unknown error: ", err)
