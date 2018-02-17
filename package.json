@@ -2,7 +2,7 @@
     "name": "youcompleteme-vscode",
     "displayName": "youcompleteme-vscode",
     "description": "YCMD client for VSCode",
-    "version": "0.1.1",
+    "version": "0.1.3",
     "publisher": "Tomeamis",
     "license": "MIT",
     "repository": {
@@ -53,7 +53,7 @@
                 },
                 "YouCompleteMe.reparseTimeout": {
                     "type": "number",
-                    "default": 250,
+                    "default": 1000,
                     "description": "The inactivity time after which the current document will be reparsed (in ms)"
                 },
                 "YouCompleteMe.logLevel": {
