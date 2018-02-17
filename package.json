@@ -16,7 +16,7 @@
         "Other"
     ],
     "activationEvents": [
-        "*"
+        "onlanguage:cpp"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -41,13 +41,26 @@
                     ],
                     "description": "Filetypes for which YouCompleteMe will work."
                 },
-                "YouCompleteMe.triggerStrings": {
-                    "type": "string[]",
+                "YouCompleteMe.triggerStringsCpp": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "->",
+                            ".",
+                            "::",
+                            "/",
+                            "\"",
+                            "<"
+                        ]
+                    },
                     "default": [
                         "->",
                         ".",
                         "::",
-                        "/"
+                        "/",
+                        "\"",
+                        "<"
                     ],
                     "description": "The trigger char sequences for Ycmd to complete"
                 },

@@ -7,7 +7,7 @@ import * as path from 'path'
 
 import {YcmServer} from './server'
 import {YcmHealthyRequest} from './requests/healthy'
-import {YcmCompletionsRequest, YcmCompletionProvider} from './requests/completions'
+import {YcmCompletionsRequest, YcmCppCompletionProvider} from './requests/completions'
 import { YcmLocation } from './requests/utils';
 import {YcmEventNotification} from './requests/event'
 import { Location, Position, workspace, window, languages } from 'vscode';
@@ -62,10 +62,10 @@ export function activate(context: vscode.ExtensionContext) {
 	disposable = vscode.workspace.onDidOpenTextDocument(x => editTracker.SendDocReparseNotification(x))
 	context.subscriptions.push(disposable)
 	
-	let triggers = workspace.getConfiguration("YouCompleteMe").get("triggerStrings") as string[]
+	let triggers = workspace.getConfiguration("YouCompleteMe").get("triggerStringsCpp") as string[]
 	disposable = vscode.languages.registerCompletionItemProvider(
 		filetypes,
-		new YcmCompletionProvider(triggers),
+		new YcmCppCompletionProvider(triggers),
 		//VScode uses first char, we want last
 		...triggers.map(seq => seq.slice(-1))
 	);

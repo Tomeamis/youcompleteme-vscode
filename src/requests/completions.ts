@@ -15,11 +15,37 @@ import {YcmServer} from '../server'
 import {YcmLoadExtraConfRequest} from './load_extra_conf'
 import {Log, ExtensionGlobals} from '../utils'
 
-export class YcmCompletionProvider implements CompletionItemProvider
+export class YcmCppCompletionProvider implements CompletionItemProvider
 {
 
 	constructor(private triggerStrings: string[])
 	{
+	}
+
+	private TriggerCharShouldComplete(lineToCursor: string, triggerChar: string): boolean
+	{
+		const includeRegexStart = "^\\s*#\\s*include\\s*%ToMatch%$"
+		if(!this.triggerStrings.find(trigger => lineToCursor.endsWith(trigger)))
+		{
+			return false
+		}
+		else if(triggerChar === "<" || triggerChar === "\"")
+		{
+			let regexStr = includeRegexStart.replace(/%ToMatch%/, triggerChar)
+			if(!new RegExp(regexStr).test(lineToCursor))
+			{
+				return false
+			}
+		}
+		else if(triggerChar === "/")
+		{
+			let regexStr = includeRegexStart.replace(/%ToMatch%/, "[<\"](?:.*)/")
+			if(!new RegExp(regexStr).test(lineToCursor))
+			{
+				return false
+			}
+		}
+		return true
 	}
 
 	async provideCompletionItems(
@@ -36,7 +62,7 @@ export class YcmCompletionProvider implements CompletionItemProvider
 		{
 			let lineToCursor = document.getText(new Range(position.with({character: 0}), position))
 			//if cursor is not preceded by one of the trigger sequences, just return null
-			if(!this.triggerStrings.find(trigger => lineToCursor.endsWith(trigger)))
+			if(!this.TriggerCharShouldComplete(lineToCursor, context.triggerCharacter))
 			{
 				return null
 			}
