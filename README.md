@@ -15,21 +15,27 @@ This extension is very much a work in (slow) progress
 ## Planned features
 
 - Hover provider
-- ...
+- Detailed diagnostics
+- More completer commands
+- Provide some VSCode commands that fire off Ycmd commands
 
 ## Requirements
 
-None that I know of
+You must have Python and Ycmd somewhere. I may publish actual instructions 
+on how to build it sometime in the future.
+For now 
 
 ## Extension Settings
 
 This extension contributes the following settings:
 
-* `YouCompleteMe.ycmdPath`: Path to ycmd
-* `YouCompleteMe.pythonPath`: python path
-* `YouCompleteMe.filetypes`: filetypes foor completion
-* `YouCompleteMe.triggerStrings`: strings that trigger
-* `YouCompleteMe.reparseTimeout`: timeout for reparse
+* `YouCompleteMe.ycmdPath`: Path to ycmd (The path should contain ycmd/default_settings.json)
+* `YouCompleteMe.pythonPath`: Full path of the python executable
+* `YouCompleteMe.filetypes`: filetypes for completion
+* `YouCompleteMe.triggerStringsCpp`: Strings that trigger completion in C++ files
+* `YouCompleteMe.reparseTimeout`: After this many milliseconds with no edits, the extension will 
+	reparse the current file and add diagnostics
+* `YouCompleteMe.logLevel`: The verbosity of logging
 
 ## Known Issues
 

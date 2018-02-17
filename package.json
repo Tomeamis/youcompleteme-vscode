@@ -2,7 +2,7 @@
     "name": "youcompleteme-vscode",
     "displayName": "youcompleteme-vscode",
     "description": "YCMD client for VSCode",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "publisher": "Tomeamis",
     "license": "MIT",
     "repository": {
@@ -35,7 +35,13 @@
                     "description": "Path to the python interpreter executable."
                 },
                 "YouCompleteMe.filetypes": {
-                    "type": "string[]",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "cpp"
+                        ]
+                    },
                     "default": [
                         "cpp"
                     ],
