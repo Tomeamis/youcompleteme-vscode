@@ -27,13 +27,15 @@ export class EditCompletionTracker
 		if(ignoredFiletypes.find(x => x == doc.languageId))
 		{
 			//just return, ignore completely
+			//necessary, NO LOGGING MUST OCCUR when langId is "Log", otherwise it just
+			//fires another Log change right away, which again triggers logging, and so on...
 			return
 		}
 		//if it's not a supported filetype, do nothing
 		if(!this.CheckFiletype(doc.languageId))
 		{
 			//just reset last typed char pos
-			Log.Debug("Edit not matching langId, resetting lastTypedPos")
+			Log.Trace("Edit not matching langId, resetting lastTypedPos")
 			this.lastTypedCharPos = null
 			return
 		}
@@ -62,7 +64,7 @@ export class EditCompletionTracker
 			Log.Warning("HandleDocChange: Document change with no content changes")
 			return
 		}
-		this.CompletionRequestDone()
+		this.ClearEditState()
 		if(change.contentChanges.length > 1)
 		{
 			return
@@ -102,20 +104,25 @@ export class EditCompletionTracker
 			this.expectCompletionTimeout = setTimeout(() => {
 				Log.Debug("Removing edit pos")
 				this.completingSemantic = false
-				this.CompletionRequestDone()
+				this.ClearEditState()
 			}, 25)
 		}, delay+25)
 	}
 
-	CompletionRequestDone()
+	private ClearEditState()
 	{
 		if(this.expectCompletionTimeout)
 		{
 			clearTimeout(this.expectCompletionTimeout)
 			this.expectCompletionTimeout = null
 		}
-		Log.Debug("Completion request done")
 		this.lastTypedCharPos = null
+	}
+
+	CompletionRequestDone()
+	{
+		Log.Debug("Completion request done")
+		this.ClearEditState()
 	}
 
 	ShouldCompleteSemantic(doc: TextDocument, pos: Position)
