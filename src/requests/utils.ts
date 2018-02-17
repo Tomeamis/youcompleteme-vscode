@@ -132,7 +132,13 @@ export class YcmLocation
 		let result = new VscodeLoc
 		let lineNum = this.line_num-1
 		result.filename = this.filepath
-		if(this.column_num <= 2)
+		//sometimes ycmd returns this on diags in included files. Didn't figure out
+		//how to reproduce, but leaving this in anyways
+		if(this.column_num === 0 && this.filepath === "" && this.line_num === 0)
+		{
+			result.pos = new Position(0, 0)
+		}
+		else if(this.column_num <= 2)
 		{
 			result.pos = new Position(lineNum, this.column_num-1)
 		}

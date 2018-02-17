@@ -180,7 +180,8 @@ export class EditCompletionTracker
 				let diagnostics: Diagnostic[] = []
 				if(response.diagnostics)
 				{
-					diagnostics = await Promise.all(response.diagnostics.map(x => x.ToVscodeDiagnostic()))
+					//TODO: keep only one error/warning from included files
+					diagnostics = await Promise.all(response.diagnostics.map(x => x.ToVscodeDiagnostic(document)))
 				}
 				ExtensionGlobals.diagnostics.set(document.uri, diagnostics)
 			}
