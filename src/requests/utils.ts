@@ -118,6 +118,7 @@ export class YcmLocation
 	public static FromVscodePosition(doc: TextDocument, pos: Position): YcmLocation
 	{
 		let lineText = doc.lineAt(pos).text
+		Log.Debug("Resolving vscode position ", pos, "in ", doc.fileName, "to YcmLocation")
 		let col = StringOffsetToYcmOffset(lineText, pos.character)
 		return new YcmLocation(pos.line+1, col, doc.fileName)
 	}
@@ -154,6 +155,7 @@ export class YcmLocation
 			}
 			else
 			{
+				Log.Debug("Resolving YcmLocation ", this, "to Vscode location")
 				let stream = fs.createReadStream(this.filepath, {encoding: "utf-8"})
 				let reader = readline.createInterface(stream)
 				let counter = 0
@@ -192,7 +194,9 @@ function YcmOffsetToStringOffset(text: string, offset: number): number
 	offset -= 1
 	if(offset > bytes.length)
 	{
-		throw "Offset greater than input length"
+		Log.Error("Ycm offset greater than byte length: ", offset, ">", bytes.length)
+		Log.Debug("Line: ", text)
+		throw "Ycm offset greater than byte length"
 	}
 	//if offset points to end of buffer, return end of string
 	else if(offset == bytes.length)
@@ -214,7 +218,9 @@ function StringOffsetToYcmOffset(text: string, offset: number): number
 {
 	if(text.length < offset)
 	{
-		throw "Offset greater than input length"
+		Log.Error("String offset greater than string length: ", offset, ">", text.length);
+		Log.Debug("Line: ", text);
+		throw "String offset greater than input length"
 	}
 	let bytes = Buffer.from(text, 'utf-8')
 	//if offset points to end of string, return end of buffer
