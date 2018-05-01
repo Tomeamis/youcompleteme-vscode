@@ -4,6 +4,8 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { Log, ExtensionGlobals } from './utils';
 import { workspace } from 'vscode';
+import { ENOENT } from 'constants';
+//import { ExtException } from './exception';
 
 export class YcmSettings
 {
@@ -11,12 +13,19 @@ export class YcmSettings
 	static async LoadDefault()
 	{
 		let ycmdPath = workspace.getConfiguration("YouCompleteMe").get("ycmdPath") as string
-		return this.LoadJSONFile(path.resolve(ycmdPath, "ycmd/default_settings.json"))
+		try
+		{
+			return this.LoadJSONFile(path.resolve(ycmdPath, "ycmd/default_settings.json"))
+		}
+		catch(err)
+		{
+			//TODO: handle
+		}
 	}
 
-	static LoadLocal(): Promise<any>
+	static async LoadLocal(): Promise<any>
 	{
-		let pJson = this.LoadJSONFile(YcmSettings.PathToLocal())
+		let pJson = this.LoadJSONFile(await YcmSettings.PathToLocal())
 		return new Promise<any>(resolve => {
 			pJson.then(result => {
 				resolve(result)
@@ -30,7 +39,55 @@ export class YcmSettings
 		});
 	}
 
-	private static PathToLocal(): string {
+	private static async PathToLocal(ensureFolderExistence?: boolean): Promise<string> {
+		if(typeof ensureFolderExistence === "undefined")
+		{
+			ensureFolderExistence = false
+		}
+		let folderPath = path.resolve(ExtensionGlobals.workingDir, ".vscode")
+		if(ensureFolderExistence)
+		{
+			let p = new Promise((resolve, reject) => {
+				fs.access(folderPath, fs.constants.W_OK, (err) => {
+					if(err)
+					{
+						if(err.code === "ENOENT")
+						{
+							fs.mkdir(folderPath, (err) => {
+								if(!err)
+								{
+									//mkdir OK
+									resolve()
+								}
+								else
+								{
+									//mkdir not OK
+									reject(err)
+								}
+							})
+						}
+						else
+						{
+							//error, but not nonexistent
+							reject(err)
+						}
+					}
+					else
+					{
+						//accessible, OK
+						resolve()
+					}
+				})
+			})
+			try
+			{
+				await p;
+			}
+			catch(ex)
+			{
+				Log.Error("Local vscode settings folder not accessible: ", ex)
+			}
+		}
 		return path.resolve(ExtensionGlobals.workingDir, ".vscode", "ycmd_settings.json");
 	}
 
@@ -52,10 +109,10 @@ export class YcmSettings
 		this.StoreLocal(localSettings)
 	}
 
-	static StoreLocal(newSettings)
+	static async StoreLocal(newSettings)
 	{
 		let data = Buffer.from(JSON.stringify(newSettings), 'utf-8')
-		fs.writeFile(this.PathToLocal(), data, (err) => {
+		fs.writeFile(await this.PathToLocal(true), data, (err) => {
 			if(err)
 			{
 				//just log it, not much we can do about it

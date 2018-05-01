@@ -264,6 +264,7 @@ export async function HandleRequestError(err): Promise<boolean>
 	{
 		//type does not match, just return
 		throw err;
+		//TODO: implement file not found
 	}
 	let type = err.exception['TYPE']
 	if(type == "UnknownExtraConf")
