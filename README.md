@@ -10,7 +10,7 @@ This extension is very much a work in (slow) progress
 
 - Code completion
 - Go to definition
-- Linting
+- Linting with extended information support
 
 ## Planned features
 
@@ -18,6 +18,7 @@ This extension is very much a work in (slow) progress
 - Detailed diagnostics
 - More completer commands
 - Provide some VSCode commands that fire off Ycmd commands
+- Detect and apply settings changes
 
 ## Requirements
 

@@ -5,6 +5,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [v0.2.0]
+
+- Add extended diagnostic information
+
 ## [v0.1.4]
 
 - Add go to definition, fix bugs

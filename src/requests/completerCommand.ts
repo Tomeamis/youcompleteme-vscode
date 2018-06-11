@@ -5,6 +5,7 @@ import {YcmServer} from '../server'
 import { YcmFileDataMap, YcmLocation, HandleRequestError } from './utils';
 import { Log } from '../utils';
 import { DefinitionProvider, TextDocument, Position, CancellationToken, Location } from 'vscode';
+import { YcmSimpleRequest } from './simpleRequest';
 
 type CCResType = {cls: {new(obj:any)}, matches: (obj: any) => boolean}
 
@@ -18,10 +19,9 @@ export class CompleterCommandResponse
 	}
 }
 
-export class CompleterCommandRequest extends YcmLocation
+export class CompleterCommandRequest extends YcmSimpleRequest
 {
 
-	private file_data: YcmFileDataMap
 	protected command_arguments: string[]
 
 	constructor(loc: YcmLocation, args: string[])

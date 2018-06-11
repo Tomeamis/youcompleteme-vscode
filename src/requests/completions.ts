@@ -14,6 +14,7 @@ import {YcmLocation, YcmFileDataMap, YcmRange, HandleRequestError} from './utils
 import {YcmServer} from '../server'
 import {YcmLoadExtraConfRequest} from './load_extra_conf'
 import {Log, ExtensionGlobals} from '../utils'
+import { YcmSimpleRequest, YcmSimpleRequestArgs } from './simpleRequest';
 
 export class YcmCppCompletionProvider implements CompletionItemProvider
 {
@@ -79,8 +80,7 @@ export class YcmCppCompletionProvider implements CompletionItemProvider
 				options.forceSemantic = true
 			}
 		}
-		//TODO: update when they release new typings
-		else if(context.triggerKind === 2)
+		else if(context.triggerKind === CompletionTriggerKind.TriggerForIncompleteCompletions)
 		{
 			options.forceSemantic = tracker.IsCompletingSemantic()
 		}
@@ -196,40 +196,25 @@ export class YcmCandidate
 
 }
 
-export class YcmCompletionsRequest extends YcmLocation
+export interface YcmCompletionsRequestArgs extends YcmSimpleRequestArgs
+{
+	forceSemantic?: boolean
+}
+
+export class YcmCompletionsRequest extends YcmSimpleRequest
 {
 
-	file_data: YcmFileDataMap
-	completer_target: string
-	working_dir: string
 	force_semantic: boolean
-
 	//todo, figure out common points, how to inherit
 
 	public constructor(
 		loc: YcmLocation,
-		{
-			completerTarget = undefined,
-			workingDir = undefined,
-			forceSemantic = undefined
-		} : {
-			completerTarget?: string, 
-			workingDir?: string, 
-			forceSemantic?: true
-		} = {}
+		additionalArgs : YcmCompletionsRequestArgs = {}
 	)
 	{
-		super(loc)
+		super(loc, additionalArgs)
 		this.file_data = new YcmFileDataMap()
-		if(completerTarget)
-		{
-			this.completer_target = completerTarget
-		}
-		if(workingDir)
-		{
-			this.working_dir = workingDir
-		}
-		if(forceSemantic)
+		if(additionalArgs.forceSemantic)
 		{
 			this.force_semantic = true
 		}
@@ -237,25 +222,9 @@ export class YcmCompletionsRequest extends YcmLocation
 
 	public async Send(server: YcmServer): Promise<YcmCompletionsResponse>
 	{
-		let p = server.SendData('/completions', this)
-		try
-		{
-			let res = await p
-			Log.Debug("Completions response: ")
-			Log.Trace(res)
-			return new YcmCompletionsResponse(res, this)
-		}
-		catch(err)
-		{
-			if(await HandleRequestError(err))
-			{
-				return this.Send(server)
-			}
-			else
-			{
-				//TODO: return empty
-			}
-		}
+		let p = super.Send(server, '/completions')
+		let res = await p
+		return new YcmCompletionsResponse(res, super.GetLocation())
 	}
 
 }
