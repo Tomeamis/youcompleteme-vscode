@@ -1,8 +1,8 @@
 'use strict'
 
-import {YcmLocation, YcmFileDataMap, YcmRange, HandleRequestError} from './utils'
+import {YcmLocation, YcmRange, HandleRequestError} from './utils'
 import {YcmServer} from '../server'
-import {Diagnostic, DiagnosticSeverity, TextDocument, Range, Position, DiagnosticRelatedInformation, Location} from 'vscode'
+import {Diagnostic, DiagnosticSeverity, TextDocument, DiagnosticRelatedInformation, Location} from 'vscode'
 import { YcmSimpleRequest } from './simpleRequest';
 import { YcmExtendedDiagnosticRequest } from './extendedDiagnostic';
 import { Log } from '../utils';

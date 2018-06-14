@@ -2,16 +2,10 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import {Log, LogLevel, ExtensionGlobals, LogLevelFromString} from './utils'
-import * as path from 'path'
+import {Log, ExtensionGlobals, LogLevelFromString} from './utils'
 
-import {YcmServer} from './server'
-import {YcmHealthyRequest} from './requests/healthy'
-import {YcmCompletionsRequest, YcmCppCompletionProvider} from './requests/completions'
-import { YcmLocation } from './requests/utils';
-import {YcmEventNotification} from './requests/event'
-import { Location, Position, workspace, window, languages } from 'vscode';
-import * as timers from 'timers'
+import {YcmCppCompletionProvider} from './requests/completions'
+import { workspace, languages } from 'vscode';
 import { YcmDefinitionProvider } from './requests/completerCommand';
 
 // this method is called when your extension is activated

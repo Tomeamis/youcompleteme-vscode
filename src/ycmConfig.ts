@@ -4,8 +4,6 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { Log, ExtensionGlobals } from './utils';
 import { workspace } from 'vscode';
-import { ENOENT } from 'constants';
-//import { ExtException } from './exception';
 
 export class YcmSettings
 {

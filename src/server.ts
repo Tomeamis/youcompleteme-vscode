@@ -2,14 +2,13 @@
 
 import * as ChildProcess from 'child_process'
 import * as Net from 'net'
-import {workspace, ProcessExecution} from 'vscode'
+import {workspace} from 'vscode'
 import * as Path from 'path';
-import {randomBytes, Hmac, createHmac, createHash} from 'crypto'
+import {randomBytes, createHmac} from 'crypto'
 import * as Fs from 'fs'
 import {tmpdir as GetTempDirPath} from 'os'
 import {Log, ExtensionGlobals} from './utils'
 import * as Http from 'http'
-import { resolve } from 'url';
 import * as QueryString from 'querystring'
 import { YcmSettings } from './ycmConfig';
 
@@ -27,15 +26,15 @@ export type YcmdPath =
  * @param ycmdPath path to ycmd directory (with __main__.py and default_settings.json files)
  * @param workingDir The workspace dir
  */
-async function MakeYcmdSettingsFile(ycmdPath: string, workingDir: string, secret: string): Promise<string>
+async function MakeYcmdSettingsFile(secret: string): Promise<string>
 {
 	let pFile = GetTempFile("YcmdSettings_");
-	let pData = MakeYcmdSettings(ycmdPath, workingDir, secret)
+	let pData = MakeYcmdSettings(secret)
 	let [[file, path], data] = await Promise.all([pFile, pData]);
 	try
 	{
 		return await new Promise<string>((resolve, reject) => {
-			Fs.write(file, JSON.stringify(data), (err, written, str) => {
+			Fs.write(file, JSON.stringify(data), (err) => {
 				if(err)
 				{
 					Log.Debug("Error writing ycmd settings file")
@@ -85,7 +84,7 @@ function GetTempFile(prefix: string, remainingAttempts = 10): Promise<[number, s
 	})
 }
 
-async function MakeYcmdSettings(ycmdPath: string, workingDir: string, secret: string)
+async function MakeYcmdSettings(secret: string)
 {
 	let pDefaults = YcmSettings.LoadDefault()
 	let pLocal = YcmSettings.LoadLocal()
@@ -139,7 +138,7 @@ export class YcmServer
 				)
 			})
 			let secret = randomBytes(16)
-			let pOptFile = MakeYcmdSettingsFile(ycmdPath, workingDir, secret.toString('base64'))
+			let pOptFile = MakeYcmdSettingsFile(secret.toString('base64'))
 			let [port, optFile] = await Promise.all([pPort, pOptFile])
 			let args = [
 				Path.resolve(ycmdPath, "ycmd"),
@@ -237,7 +236,7 @@ export class YcmServer
 		let options = {
 			hostname: "localhost",
 			port: this.port,
-			path: path,
+			path: reqPath,
 			method: method,
 			headers: {
 				'content-type': 'application/json'

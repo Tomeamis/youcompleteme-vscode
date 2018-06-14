@@ -4,7 +4,6 @@ import {workspace, Position, TextDocument, Memento, Range, window, Location, Uri
 import {YcmServer} from '../server'
 import { YcmLoadExtraConfRequest } from './load_extra_conf';
 import { Log } from '../utils';
-import { setTimeout } from 'timers';
 import * as fs from 'fs'
 import * as readline from 'readline'
 import { YcmSettings } from '../ycmConfig';

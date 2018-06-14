@@ -1,8 +1,4 @@
-import { Location, Memento, TextDocumentChangeEvent, TextDocument, Position, workspace, Uri, DiagnosticCollection, ExtensionContext, languages, OutputChannel, window } from "vscode";
-import { YcmServer } from "./server";
-import { YcmLocation } from "./requests/utils";
-import { YcmEventNotification } from "./requests/event";
-import {setTimeout, clearTimeout} from 'timers'
+import { Memento, DiagnosticCollection, ExtensionContext, languages, OutputChannel, window } from "vscode";
 import { EditCompletionTracker } from "./editCompletionTracker";
 
 'use strict'

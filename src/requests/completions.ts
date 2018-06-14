@@ -1,18 +1,16 @@
 'use strict'
 
-import {workspace, CompletionItem, CompletionItemKind, 
+import {CompletionItem, CompletionItemKind, 
 	CompletionItemProvider,
 	CompletionList,
-	CancellationToken,
-	ProviderResult,
 	CompletionContext,
 	Position,
 	TextDocument,
 	CompletionTriggerKind,
-	Range} from 'vscode'
-import {YcmLocation, YcmFileDataMap, YcmRange, HandleRequestError} from './utils'
+	Range,
+	CancellationToken} from 'vscode'
+import {YcmLocation, YcmFileDataMap, YcmRange} from './utils'
 import {YcmServer} from '../server'
-import {YcmLoadExtraConfRequest} from './load_extra_conf'
 import {Log, ExtensionGlobals} from '../utils'
 import { YcmSimpleRequest, YcmSimpleRequestArgs } from './simpleRequest';
 
@@ -51,11 +49,12 @@ export class YcmCppCompletionProvider implements CompletionItemProvider
 
 	async provideCompletionItems(
 		document: TextDocument, 
-		position: Position, 
-		token: CancellationToken, 
+		position: Position,
+		token: CancellationToken,
 		context: CompletionContext
 	): Promise<CompletionList>
 	{
+		//TODO: use token
 		Log.Debug("provideCompletionItems: start")
 		//if trigger char, figure out if we should really be triggered
 		//TODO: trigger on " and <, only complete if part of include directive

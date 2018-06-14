@@ -2,7 +2,6 @@
 
 import { YcmLocation, YcmFileDataMap, HandleRequestError } from "./utils";
 import { YcmServer, YcmdPath } from "../server";
-import { YcmCompletionsResponse } from "./completions";
 import { Log } from "../utils";
 
 export interface YcmSimpleRequestArgs

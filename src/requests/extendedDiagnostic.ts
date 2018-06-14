@@ -1,7 +1,6 @@
 'use strict'
 
-import { YcmSimpleRequest, YcmSimpleRequestArgs } from "./simpleRequest";
-import { YcmLocation } from "./utils";
+import { YcmSimpleRequest } from "./simpleRequest";
 import { YcmServer } from "../server";
 import { YcmDiagnosticData } from "./event";
 import { Log } from "../utils";
