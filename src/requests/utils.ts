@@ -117,7 +117,7 @@ export class YcmLocation
 	public static FromVscodePosition(doc: TextDocument, pos: Position): YcmLocation
 	{
 		let lineText = doc.lineAt(pos).text
-		Log.Debug("Resolving vscode position ", pos, "in ", doc.fileName, "to YcmLocation")
+		Log.Debug("Resolving vscode position ", pos, "in ", doc.fileName, " to YcmLocation")
 		let col = StringOffsetToYcmOffset(lineText, pos.character)
 		return new YcmLocation(pos.line+1, col, doc.fileName)
 	}
