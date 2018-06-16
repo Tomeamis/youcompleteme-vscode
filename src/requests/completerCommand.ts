@@ -118,7 +118,7 @@ export class YcmDefinitionProvider implements DefinitionProvider
 				Log.Info("Definition not found");
 				return null
 			}
-			return (await response.loc.GetVscodePosition()).ToVscodeLocation()
+			return (await response.loc.GetVscodeLoc()).ToVscodeLocation()
 		}
 		catch(err)
 		{

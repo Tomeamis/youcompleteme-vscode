@@ -77,7 +77,7 @@ export class YcmDiagnosticData
 		//TODO: check if the location is in the workspace, an place it in that document if it is
 		else
 		{
-			let realLoc = await this.location.GetVscodePosition()
+			let realLoc = await this.location.GetVscodeLoc()
 			result = new Diagnostic(
 				contextDoc.lineAt(0).range,
 				//even most programmers expect 1-based indexing in file coordinates
@@ -96,7 +96,7 @@ export class YcmDiagnosticData
 				return new DiagnosticRelatedInformation(
 					new Location(
 						contextDoc.uri,
-						(await this.location.GetVscodePosition()).pos
+						(await this.location.GetVscodeLoc()).pos
 					),
 					extendedDiag
 				)

@@ -79,7 +79,7 @@ export class YcmRange
 
 	public async ToVscodeRange(): Promise<Range>
 	{
-		let [start, end] = await Promise.all([this.start.GetVscodePosition(), this.end.GetVscodePosition()])
+		let [start, end] = await Promise.all([this.start.GetVscodeLoc(), this.end.GetVscodeLoc()])
 		return new Range(start.pos, end.pos)
 	}
 
@@ -127,11 +127,12 @@ export class YcmLocation
 		return new YcmLocation(obj.line_num, obj.column_num, obj.filepath)
 	}
 
-	public async GetVscodePosition(): Promise<VscodeLoc>
+	public async GetVscodeLoc(): Promise<VscodeLoc>
 	{
 		let result = new VscodeLoc
 		let lineNum = this.line_num-1
 		result.filename = this.filepath
+		Log.Debug("Resolving YcmLocation ", this, "to Vscode location")
 		//sometimes ycmd returns this on diags in included files. Didn't figure out
 		//how to reproduce, but leaving this in anyways
 		if(this.column_num === 0 && this.filepath === "" && this.line_num === 0)
@@ -147,38 +148,21 @@ export class YcmLocation
 			let doc = workspace.textDocuments.find((val: TextDocument) => {
 				return val.fileName == this.filepath
 			})
-			let lineText: string
-			if(doc)
+			if(!doc)
 			{
-				lineText = doc.lineAt(lineNum).text
-			}
-			else
-			{
-				Log.Debug("Resolving YcmLocation ", this, "to Vscode location")
-				let stream = fs.createReadStream(this.filepath, {encoding: "utf-8"})
-				let reader = readline.createInterface(stream)
-				let counter = 0
-				let success = false
-				let pLine = new Promise<string>((resolve, reject) => {
-					reader.on("line", (line: string) => {
-						counter += 1
-						if(counter == this.line_num)
-						{
-							resolve(line)
-							success = true
-							reader.close()
-							stream.close()
+				let pDoc = new Promise<TextDocument>((res, rej) => {
+					workspace.openTextDocument(this.filepath).then(
+						val => {
+							res(val)
+						},
+						reason => {
+							rej(reason)
 						}
-					})
-					reader.on("close", () => {
-						if(!success)
-						{
-							reject("Unexpected end of file in GetVscodePosition")
-						}
-					})
+					)
 				})
-				lineText = await pLine
+				doc = await pDoc
 			}
+			let lineText = doc.lineAt(lineNum).text
 			let charIndex = YcmOffsetToStringOffset(lineText, this.column_num)
 			result.pos = new Position(lineNum, charIndex);
 		}
