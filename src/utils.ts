@@ -1,5 +1,6 @@
 import { Memento, DiagnosticCollection, ExtensionContext, languages, OutputChannel, window } from "vscode";
 import { EditCompletionTracker } from "./editCompletionTracker";
+import { DiagnosticAggregator } from "./diagnosticAggregator";
 
 'use strict'
 
@@ -8,16 +9,15 @@ export class ExtensionGlobals
 	static editTracker: EditCompletionTracker
 	static extensionOpts: Memento
 	static workingDir: string
-	static diagnostics: DiagnosticCollection
 	static output: OutputChannel
+	static diags: DiagnosticAggregator
 
 	static Init(context: ExtensionContext)
 	{
 		this.editTracker = new EditCompletionTracker()
 		this.extensionOpts = context.globalState
-		this.diagnostics = languages.createDiagnosticCollection("YouCompleteMe")
-		this.output = window.createOutputChannel("YouCompleteMe");
-		context.subscriptions.push(this.diagnostics, this.output)
+		this.output = window.createOutputChannel("YouCompleteMe")
+		this.diags = new DiagnosticAggregator(context)
 	}
 
 }

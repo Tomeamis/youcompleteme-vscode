@@ -1,8 +1,9 @@
 'use strict'
 
-import { YcmLocation, YcmFileDataMap, HandleRequestError } from "./utils";
+import { YcmLocation, HandleRequestError, YcmFileDataMap, YcmFileDataMapKeeper } from "./utils";
 import { YcmServer, YcmdPath } from "../server";
 import { Log } from "../utils";
+import * as path from 'path'
 
 export interface YcmSimpleRequestArgs
 {
@@ -16,7 +17,8 @@ export class YcmSimpleRequest
 	line_num: number
 	column_num: number
 	filepath: string
-	file_data: YcmFileDataMap
+	//the type is hacking around the fact that we can't await it in the constructor
+	file_data: Promise<YcmFileDataMap>|YcmFileDataMap
 	completer_target: string
 	working_dir: string
 
@@ -33,7 +35,7 @@ export class YcmSimpleRequest
 		this.line_num = loc.line_num
 		this.column_num = loc.column_num
 		this.filepath = loc.filepath
-		this.file_data = new YcmFileDataMap()
+		this.file_data = YcmFileDataMapKeeper.GetDataMap(loc.filepath)
 		if(completerTarget)
 		{
 			this.completer_target = completerTarget
@@ -51,6 +53,11 @@ export class YcmSimpleRequest
 
 	protected async Send(server: YcmServer, path: YcmdPath): Promise<any>
 	{
+		//promise must be resolved before sending.
+		if(this.file_data instanceof Promise)
+		{
+			this.file_data = await this.file_data
+		}
 		let p = server.SendData(path, this)
 		try
 		{

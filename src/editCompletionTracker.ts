@@ -184,13 +184,7 @@ export class EditCompletionTracker
 				let response = await pResponse
 				Log.Debug("FileReadyToParse response: ")
 				Log.Trace(response)
-				let diagnostics: Diagnostic[] = []
-				if(response.diagnostics)
-				{
-					//TODO: keep only one error/warning from included files
-					diagnostics = await Promise.all(response.diagnostics.map(x => x.ToVscodeDiagnostic(document)))
-				}
-				ExtensionGlobals.diagnostics.set(document.uri, diagnostics)
+				ExtensionGlobals.diags.AddDiagnostics(document.uri.fsPath, response.diagnostics)
 			}
 			catch(err)
 			{

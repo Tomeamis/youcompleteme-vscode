@@ -4,8 +4,7 @@ import {workspace, Position, TextDocument, Memento, Range, window, Location, Uri
 import {YcmServer} from '../server'
 import { YcmLoadExtraConfRequest } from './load_extra_conf';
 import { Log } from '../utils';
-import * as fs from 'fs'
-import * as readline from 'readline'
+import * as path from 'path'
 import { YcmSettings } from '../ycmConfig';
 
 export class VscodeLoc 
@@ -19,18 +18,56 @@ export class VscodeLoc
 	}
 }
 
-export class YcmFileDataMap
+export interface YcmFileDataMap
+{
+	[filename: string]: {
+		contents: string
+		filetypes: [string]
+	}
+}
+
+export namespace YcmFileDataMapKeeper
 {
 
-	constructor()
+	let stData: YcmFileDataMap = {}
+
+	function AddDoc(doc: TextDocument)
+	{
+		stData[doc.fileName] = {contents: doc.getText(), filetypes: [doc.languageId]}
+	}
+
+	export async function GetDataMap(requiredFilePath: string): Promise<YcmFileDataMap>
 	{
 		let filetypes = workspace.getConfiguration('YouCompleteMe').get('filetypes') as string[]
+		let reqFilePresent = false
 		workspace.textDocuments.forEach(doc => {
 			if(filetypes.find(filetype => filetype === doc.languageId))
 			{
-				this[doc.fileName] = {contents: doc.getText(), filetypes: [doc.languageId]}
+				if(doc.fileName === Uri.file(requiredFilePath).fsPath)
+				{
+					reqFilePresent = true
+				}
+				AddDoc(doc)
 			}
 		})
+		if(!reqFilePresent)
+		{
+			let nDoc = await workspace.openTextDocument(requiredFilePath)
+			AddDoc(nDoc)
+		}
+		let nmap: YcmFileDataMap = {}
+		for(let key in stData)
+		{
+			if(key === Uri.file(requiredFilePath).fsPath)
+			{
+				nmap[requiredFilePath] = stData[key]
+			}
+			else
+			{
+				nmap[key] = stData[key]
+			}
+		}
+		return nmap
 	}
 
 }
@@ -77,6 +114,12 @@ export class YcmRange
 		)
 	}
 
+	public Equals(other: YcmRange): boolean
+	{
+		return this.start.Equals(other.start) &&
+			this.end.Equals(other.end)
+	}
+
 	public async ToVscodeRange(): Promise<Range>
 	{
 		let [start, end] = await Promise.all([this.start.GetVscodeLoc(), this.end.GetVscodeLoc()])
@@ -94,7 +137,7 @@ export class YcmLocation
 {
 	line_num: number
 	column_num: number
-	filepath: string
+	filepath: string //TODO: figure out path normalization
 
 	public constructor(loc: YcmLocation)
 	public constructor(row: number, col: number, path: string)
@@ -125,6 +168,13 @@ export class YcmLocation
 	public static FromSimpleObject(obj: any): YcmLocation
 	{
 		return new YcmLocation(obj.line_num, obj.column_num, obj.filepath)
+	}
+
+	public Equals(other: YcmLocation): boolean
+	{
+		return this.line_num === other.line_num &&
+			this.column_num === other.column_num &&
+			this.filepath === other.filepath
 	}
 
 	public async GetVscodeLoc(): Promise<VscodeLoc>

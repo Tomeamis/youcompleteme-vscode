@@ -9,7 +9,7 @@ import {CompletionItem, CompletionItemKind,
 	CompletionTriggerKind,
 	Range,
 	CancellationToken} from 'vscode'
-import {YcmLocation, YcmFileDataMap, YcmRange} from './utils'
+import {YcmLocation, YcmFileDataMapKeeper, YcmRange} from './utils'
 import {YcmServer} from '../server'
 import {Log, ExtensionGlobals} from '../utils'
 import { YcmSimpleRequest, YcmSimpleRequestArgs } from './simpleRequest';
@@ -212,7 +212,6 @@ export class YcmCompletionsRequest extends YcmSimpleRequest
 	)
 	{
 		super(loc, additionalArgs)
-		this.file_data = new YcmFileDataMap()
 		if(additionalArgs.forceSemantic)
 		{
 			this.force_semantic = true

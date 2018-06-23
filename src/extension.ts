@@ -51,9 +51,9 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable)
 	
 	//on activation, load documents that are already open
-	workspace.textDocuments.forEach(x => editTracker.SendDocReparseNotification(x))
+	vscode.window.visibleTextEditors.forEach(x => editTracker.SendDocReparseNotification(x.document))
 
-	disposable = vscode.workspace.onDidOpenTextDocument(x => editTracker.SendDocReparseNotification(x))
+	disposable = vscode.window.onDidChangeActiveTextEditor(x => {if(x) editTracker.SendDocReparseNotification(x.document)})
 	context.subscriptions.push(disposable)
 	
 	let triggers = workspace.getConfiguration("YouCompleteMe").get("triggerStringsCpp") as string[]

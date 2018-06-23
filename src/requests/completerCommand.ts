@@ -2,12 +2,11 @@
 
 
 import {YcmServer} from '../server'
-import { YcmFileDataMap, YcmLocation, HandleRequestError } from './utils';
+import { YcmLocation, HandleRequestError } from './utils';
 import { Log } from '../utils';
 import { DefinitionProvider, TextDocument, Position, CancellationToken, Location } from 'vscode';
 import { YcmSimpleRequest } from './simpleRequest';
 
-type CCResType = {cls: {new(obj:any)}, matches: (obj: any) => boolean}
 
 export class CompleterCommandResponse
 {
@@ -28,7 +27,6 @@ export class CompleterCommandRequest extends YcmSimpleRequest
 	{
 		super(loc)
 		this.command_arguments = args
-		this.file_data = new YcmFileDataMap()
 	}
 
 	public async Send(server: YcmServer): Promise<CompleterCommandResponse>
@@ -105,7 +103,7 @@ export class YcmGoToRequest extends CompleterCommandRequest
 export class YcmDefinitionProvider implements DefinitionProvider
 {
 
-	async provideDefinition(document: TextDocument, position: Position, token: CancellationToken): Promise<Location | Location[]> 
+	async provideDefinition(document: TextDocument, position: Position): Promise<Location | Location[]> 
 	{
 		try
 		{
