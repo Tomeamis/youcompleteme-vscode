@@ -10,7 +10,7 @@ export class YcmSettings
 
 	static async LoadDefault()
 	{
-		let ycmdPath = ExtensionGlobals.extConfig.ycmdPath
+		let ycmdPath = ExtensionGlobals.extConfig.ycmdPath.value
 		try
 		{
 			return this.LoadJSONFile(path.resolve(ycmdPath, "ycmd/default_settings.json"))

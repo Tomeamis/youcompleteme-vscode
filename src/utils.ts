@@ -95,7 +95,7 @@ export class Log
 
 	static WriteLog(level: LogLevel, ...args)
 	{
-		if(ExtensionGlobals.extConfig.logLevel >= level)
+		if(ExtensionGlobals.extConfig.logLevel.value >= level)
 		{
 			switch(level)
 			{

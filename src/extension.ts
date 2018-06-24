@@ -39,7 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(disposable);*/
 
-	let filetypes = ExtensionGlobals.extConfig.filetypes
+	let filetypes = ExtensionGlobals.extConfig.filetypes.value
 	let editTracker = ExtensionGlobals.editTracker
 
 	disposable = vscode.workspace.onDidChangeTextDocument(x => editTracker.HandleDocChange(x))
@@ -52,7 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
 	disposable = vscode.window.onDidChangeActiveTextEditor(x => {if(x) editTracker.SendDocReparseNotification(x.document)})
 	context.subscriptions.push(disposable)
 	
-	let triggers = ExtensionGlobals.extConfig.triggerStrings.cpp
+	let triggers = ExtensionGlobals.extConfig.triggerStrings.value.cpp
 	disposable = vscode.languages.registerCompletionItemProvider(
 		filetypes,
 		new YcmCppCompletionProvider(triggers),

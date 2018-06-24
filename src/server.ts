@@ -118,7 +118,7 @@ export class YcmServer
 		YcmServer.alive = true
 		try
 		{
-			let ycmdPath = ExtensionGlobals.extConfig.ycmdPath;
+			let ycmdPath = ExtensionGlobals.extConfig.ycmdPath.value;
 			let options = {
 				cwd: workingDir,
 				env: process.env,
@@ -149,7 +149,7 @@ export class YcmServer
 			]
 			//TODO: implement a keepalive pinger
 			
-			let pythonPath = ExtensionGlobals.extConfig.pythonPath
+			let pythonPath = ExtensionGlobals.extConfig.pythonPath.value
 			let cp = ChildProcess.spawn(`"${pythonPath}"`, args, options)
 			if(cp.pid)
 			{

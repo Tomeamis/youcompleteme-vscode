@@ -47,13 +47,13 @@ export class EditCompletionTracker
 			clearTimeout(this.lastEditTimers[doc.fileName])
 			this.lastEditTimers[doc.fileName] = undefined
 		}
-		let timeout = ExtensionGlobals.extConfig.reparseTimeout
+		let timeout = ExtensionGlobals.extConfig.reparseTimeout.value
 		this.lastEditTimers[doc.fileName] = setTimeout(() => this.SendDocReparseNotification(doc), timeout)
 	}
 
 	private CheckFiletype(langId: string): boolean
 	{
-		let filetypes = ExtensionGlobals.extConfig.filetypes
+		let filetypes = ExtensionGlobals.extConfig.filetypes.value
 		return !!filetypes.find((type) => type == langId)
 	}
 

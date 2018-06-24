@@ -38,7 +38,7 @@ export namespace YcmFileDataMapKeeper
 
 	export async function GetDataMap(requiredFilePath: string): Promise<YcmFileDataMap>
 	{
-		let filetypes = ExtensionGlobals.extConfig.filetypes
+		let filetypes = ExtensionGlobals.extConfig.filetypes.value
 		let reqFilePresent = false
 		workspace.textDocuments.forEach(doc => {
 			if(filetypes.find(filetype => filetype === doc.languageId))
