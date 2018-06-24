@@ -21,6 +21,7 @@ export class ExtensionGlobals
 		this.output = window.createOutputChannel("YouCompleteMe")
 		this.diags = new DiagnosticAggregator(context)
 		this.extConfig = new ExtensionConfig()
+		context.subscriptions.push(this.output, this.extConfig)
 	}
 
 }

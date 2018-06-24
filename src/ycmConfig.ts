@@ -3,7 +3,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { Log, ExtensionGlobals } from './utils';
-import { workspace } from 'vscode';
 
 export class YcmSettings
 {

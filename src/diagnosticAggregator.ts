@@ -113,7 +113,7 @@ class DiagInfo extends ExtendedDiagInfo
 			if(this.originDocs.has(doc))
 			{
 				//this diag has been affected before, but no longer is
-				Log.Debug("Diag ", this.ToString(), "is no longer affected by doc ", doc)
+				Log.Debug("Diag ", this.ToString(), "is no longer affected by doc ", this.location.filepath)
 				return this.ProcessDocClearance(doc)
 			}
 			else
@@ -224,7 +224,7 @@ export class DiagnosticAggregator
 				).map(
 					diag => {
 						let nInfo = new DiagInfo(diag, contextDoc)
-						Log.Info("Adding new diag ", nInfo.ToString(), " to document ", contextDoc)
+						Log.Info("Adding new diag ", nInfo.ToString(), " to document ", nInfo.location.filepath)
 						return nInfo
 					}
 				)
