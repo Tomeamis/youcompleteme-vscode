@@ -10,7 +10,7 @@ export class YcmSettings
 
 	static async LoadDefault()
 	{
-		let ycmdPath = workspace.getConfiguration("YouCompleteMe").get("ycmdPath") as string
+		let ycmdPath = ExtensionGlobals.extConfig.ycmdPath
 		try
 		{
 			return this.LoadJSONFile(path.resolve(ycmdPath, "ycmd/default_settings.json"))

@@ -1,6 +1,7 @@
-import { Memento, DiagnosticCollection, ExtensionContext, languages, OutputChannel, window } from "vscode";
+import { Memento, ExtensionContext, OutputChannel, window } from "vscode";
 import { EditCompletionTracker } from "./editCompletionTracker";
 import { DiagnosticAggregator } from "./diagnosticAggregator";
+import { ExtensionConfig } from "./extensionConfig";
 
 'use strict'
 
@@ -11,6 +12,7 @@ export class ExtensionGlobals
 	static workingDir: string
 	static output: OutputChannel
 	static diags: DiagnosticAggregator
+	static extConfig: ExtensionConfig
 
 	static Init(context: ExtensionContext)
 	{
@@ -18,6 +20,7 @@ export class ExtensionGlobals
 		this.extensionOpts = context.globalState
 		this.output = window.createOutputChannel("YouCompleteMe")
 		this.diags = new DiagnosticAggregator(context)
+		this.extConfig = new ExtensionConfig()
 	}
 
 }
@@ -60,13 +63,6 @@ export function LogLevelFromString(str: string): LogLevel
 export class Log
 {
 
-	static level : LogLevel
-
-	static SetLevel(level : LogLevel)
-	{
-		Log.level = level;
-	}
-
 	static Trace(...args): void
 	{
 		Log.WriteLog(LogLevel.TRACE, ...args)
@@ -99,7 +95,7 @@ export class Log
 
 	static WriteLog(level: LogLevel, ...args)
 	{
-		if(Log.level >= level)
+		if(ExtensionGlobals.extConfig.logLevel >= level)
 		{
 			switch(level)
 			{

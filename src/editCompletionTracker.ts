@@ -47,13 +47,13 @@ export class EditCompletionTracker
 			clearTimeout(this.lastEditTimers[doc.fileName])
 			this.lastEditTimers[doc.fileName] = undefined
 		}
-		let timeout = workspace.getConfiguration("YouCompleteMe").get("reparseTimeout") as number
+		let timeout = ExtensionGlobals.extConfig.reparseTimeout
 		this.lastEditTimers[doc.fileName] = setTimeout(() => this.SendDocReparseNotification(doc), timeout)
 	}
 
 	private CheckFiletype(langId: string): boolean
 	{
-		let filetypes = workspace.getConfiguration("YouCompleteMe").get("filetypes") as string[]
+		let filetypes = ExtensionGlobals.extConfig.filetypes
 		return !!filetypes.find((type) => type == langId)
 	}
 

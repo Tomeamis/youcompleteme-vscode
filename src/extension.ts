@@ -2,10 +2,10 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import {Log, ExtensionGlobals, LogLevelFromString} from './utils'
+import {Log, ExtensionGlobals} from './utils'
 
 import {YcmCppCompletionProvider} from './requests/completions'
-import { workspace, languages } from 'vscode';
+import { languages } from 'vscode';
 import { YcmDefinitionProvider } from './requests/completerCommand';
 
 // this method is called when your extension is activated
@@ -14,10 +14,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 	ExtensionGlobals.Init(context)
-	{
-		let levelStr = workspace.getConfiguration("YouCompleteMe").get("logLevel") as string
-		Log.SetLevel(LogLevelFromString(levelStr));
-	}
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
@@ -43,7 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(disposable);*/
 
-	let filetypes = workspace.getConfiguration("YouCompleteMe").get("filetypes") as string[]
+	let filetypes = ExtensionGlobals.extConfig.filetypes
 	let editTracker = ExtensionGlobals.editTracker
 
 	disposable = vscode.workspace.onDidChangeTextDocument(x => editTracker.HandleDocChange(x))
@@ -56,7 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
 	disposable = vscode.window.onDidChangeActiveTextEditor(x => {if(x) editTracker.SendDocReparseNotification(x.document)})
 	context.subscriptions.push(disposable)
 	
-	let triggers = workspace.getConfiguration("YouCompleteMe").get("triggerStringsCpp") as string[]
+	let triggers = ExtensionGlobals.extConfig.triggerStrings.cpp
 	disposable = vscode.languages.registerCompletionItemProvider(
 		filetypes,
 		new YcmCppCompletionProvider(triggers),
