@@ -2,7 +2,7 @@
   "name": "youcompleteme-vscode",
   "displayName": "youcompleteme-vscode",
   "description": "YCMD client for VSCode",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "publisher": "Tomeamis",
   "license": "MIT",
   "repository": {

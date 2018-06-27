@@ -206,7 +206,7 @@ export class DiagnosticAggregator
 			let newAffectedDocs = new Set<string>()
 			for(let diag of diags)
 			{
-				newAffectedDocs.add(diag.location.filepath)
+				newAffectedDocs.add(diag.location.filepath.normalizedPath)
 			}
 			this.affectedDocs[contextDoc] = [...newAffectedDocs]
 			//clear affectedDocs
@@ -227,7 +227,7 @@ export class DiagnosticAggregator
 				prevDiags = prevDiags.filter(diag => diag.ProcessDocUpdate(contextDoc, diags))
 				prevDiags = prevDiags.concat(
 					diags.filter(
-						diag => diag.location.filepath === affectedDoc && !prevDiags.some(
+						diag => diag.location.filepath.normalizedPath === affectedDoc && !prevDiags.some(
 							diag2 => diag2.IsEquivalent(diag)
 						)
 					).map(

@@ -104,7 +104,7 @@ export class YcmDiagnosticData
 			let pDiags = this.extendedDiags.map(async (extendedDiag) => {
 				return new DiagnosticRelatedInformation(
 					new Location(
-						Uri.file(extendedDiag.location.filepath),
+						Uri.file(extendedDiag.location.filepath.normalizedPath),
 						(await extendedDiag.location.GetVscodeLoc()).pos
 					),
 					extendedDiag.text

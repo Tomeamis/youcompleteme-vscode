@@ -36,31 +36,36 @@ export namespace YcmFileDataMapKeeper
 		stData[doc.fileName] = {contents: doc.getText(), filetypes: [doc.languageId]}
 	}
 
-	export async function GetDataMap(requiredFilePath: string): Promise<YcmFileDataMap>
+	export async function GetDataMap(requiredFilePath: YcmFilepath): Promise<YcmFileDataMap>
 	{
 		let filetypes = workspace.getConfiguration('YouCompleteMe').get('filetypes') as string[]
 		let reqFilePresent = false
 		workspace.textDocuments.forEach(doc => {
 			if(filetypes.find(filetype => filetype === doc.languageId))
 			{
-				if(doc.fileName === Uri.file(requiredFilePath).fsPath)
+				if(doc.fileName === requiredFilePath.normalizedPath)
 				{
 					reqFilePresent = true
+				}
+				else if(!doc.isDirty)
+				{
+					//only send dirty documents (unless they are the required document)
+					return
 				}
 				AddDoc(doc)
 			}
 		})
 		if(!reqFilePresent)
 		{
-			let nDoc = await workspace.openTextDocument(requiredFilePath)
+			let nDoc = await workspace.openTextDocument(requiredFilePath.normalizedPath)
 			AddDoc(nDoc)
 		}
 		let nmap: YcmFileDataMap = {}
 		for(let key in stData)
 		{
-			if(key === Uri.file(requiredFilePath).fsPath)
+			if(key === requiredFilePath.normalizedPath)
 			{
-				nmap[requiredFilePath] = stData[key]
+				nmap[requiredFilePath.receivedPath] = stData[key]
 			}
 			else
 			{
@@ -126,9 +131,26 @@ export class YcmRange
 		return new Range(start.pos, end.pos)
 	}
 
-	public GetFile(): string
+	public GetFilepath(): YcmFilepath
 	{
 		return this.start.filepath
+	}
+
+}
+
+/**
+ * Class for paths from Ycmd. Can get either normalized path for normal use,
+ * or path as received for further communication with Ycmd
+ */
+export class YcmFilepath
+{
+	receivedPath: string
+	normalizedPath: string
+
+	constructor(filepath: string)
+	{
+		this.receivedPath = filepath
+		this.normalizedPath = Uri.file(filepath).fsPath
 	}
 
 }
@@ -137,7 +159,7 @@ export class YcmLocation
 {
 	line_num: number
 	column_num: number
-	filepath: string //TODO: figure out path normalization
+	filepath: YcmFilepath
 
 	public constructor(loc: YcmLocation)
 	public constructor(row: number, col: number, path: string)
@@ -153,7 +175,7 @@ export class YcmLocation
 		{
 			this.line_num = firstParam
 			this.column_num = col
-			this.filepath = path
+			this.filepath = new YcmFilepath(path)
 		}
 	}
 
@@ -181,11 +203,11 @@ export class YcmLocation
 	{
 		let result = new VscodeLoc
 		let lineNum = this.line_num-1
-		result.filename = this.filepath
+		result.filename = this.filepath.normalizedPath
 		Log.Debug("Resolving YcmLocation ", this, "to Vscode location")
 		//sometimes ycmd returns this on diags in included files. Didn't figure out
 		//how to reproduce, but leaving this in anyways
-		if(this.column_num === 0 && this.filepath === "" && this.line_num === 0)
+		if(this.column_num === 0 && this.filepath.receivedPath === "" && this.line_num === 0)
 		{
 			result.pos = new Position(0, 0)
 		}
@@ -196,12 +218,12 @@ export class YcmLocation
 		else
 		{
 			let doc = workspace.textDocuments.find((val: TextDocument) => {
-				return val.fileName == this.filepath
+				return val.fileName == this.filepath.normalizedPath
 			})
 			if(!doc)
 			{
 				let pDoc = new Promise<TextDocument>((res, rej) => {
-					workspace.openTextDocument(this.filepath).then(
+					workspace.openTextDocument(this.filepath.normalizedPath).then(
 						val => {
 							res(val)
 						},

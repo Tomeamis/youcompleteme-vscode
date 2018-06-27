@@ -34,7 +34,7 @@ export class YcmSimpleRequest
 	{
 		this.line_num = loc.line_num
 		this.column_num = loc.column_num
-		this.filepath = loc.filepath
+		this.filepath = loc.filepath.receivedPath
 		this.file_data = YcmFileDataMapKeeper.GetDataMap(loc.filepath)
 		if(completerTarget)
 		{
@@ -57,6 +57,10 @@ export class YcmSimpleRequest
 		if(this.file_data instanceof Promise)
 		{
 			this.file_data = await this.file_data
+		}
+		if(typeof this.file_data[this.filepath] === "undefined")
+		{
+			throw `File data missing the filepath ${this.filepath}`
 		}
 		let p = server.SendData(path, this)
 		try
