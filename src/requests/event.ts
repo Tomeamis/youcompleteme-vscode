@@ -131,5 +131,6 @@ export class YcmDiagnosticsResponse
 		{
 			this.diagnostics = diagnostics.map(x => new YcmDiagnosticData(x))
 		}
+		else this.diagnostics = []
 	}
 }

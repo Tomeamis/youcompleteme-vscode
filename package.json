@@ -1,110 +1,110 @@
 {
-    "name": "youcompleteme-vscode",
-    "displayName": "youcompleteme-vscode",
-    "description": "YCMD client for VSCode",
-    "version": "0.2.2",
-    "publisher": "Tomeamis",
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/Tomeamis/youcompleteme-vscode"
-    },
-    "engines": {
-        "vscode": "^1.22.0"
-    },
-    "categories": [
-        "Other"
-    ],
-    "activationEvents": [
-        "onLanguage:cpp"
-    ],
-    "main": "./out/extension",
-    "contributes": {
-        "configuration": {
-            "type": "object",
-            "title": "YouCompleteMe configuration",
-            "properties": {
-                "YouCompleteMe.ycmdPath": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Path to ycmd."
-                },
-                "YouCompleteMe.pythonPath": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Path to the python interpreter executable."
-                },
-                "YouCompleteMe.filetypes": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "enum": [
-                            "cpp"
-                        ]
-                    },
-                    "default": [
-                        "cpp"
-                    ],
-                    "description": "Filetypes for which YouCompleteMe will work."
-                },
-                "YouCompleteMe.triggerStringsCpp": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "enum": [
-                            "->",
-                            ".",
-                            "::",
-                            "/",
-                            "\"",
-                            "<"
-                        ]
-                    },
-                    "default": [
-                        "->",
-                        ".",
-                        "::",
-                        "/",
-                        "\"",
-                        "<"
-                    ],
-                    "description": "The trigger char sequences for Ycmd to complete"
-                },
-                "YouCompleteMe.reparseTimeout": {
-                    "type": "number",
-                    "default": 1000,
-                    "description": "The inactivity time after which the current document will be reparsed (in ms)"
-                },
-                "YouCompleteMe.logLevel": {
-                    "type": "string",
-                    "default": "info",
-                    "description": "Controls log verbosity",
-                    "enum": [
-                        "all",
-                        "trace",
-                        "debug",
-                        "info",
-                        "warning",
-                        "error",
-                        "fatal",
-                        "none"
-                    ]
-                }
-            }
+  "name": "youcompleteme-vscode",
+  "displayName": "youcompleteme-vscode",
+  "description": "YCMD client for VSCode",
+  "version": "0.2.3",
+  "publisher": "Tomeamis",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Tomeamis/youcompleteme-vscode"
+  },
+  "engines": {
+    "vscode": "^1.22.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:cpp"
+  ],
+  "main": "./out/extension",
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "YouCompleteMe configuration",
+      "properties": {
+        "YouCompleteMe.ycmdPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to ycmd."
         },
-        "commands": []
+        "YouCompleteMe.pythonPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the python interpreter executable."
+        },
+        "YouCompleteMe.filetypes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "cpp"
+            ]
+          },
+          "default": [
+            "cpp"
+          ],
+          "description": "Filetypes for which YouCompleteMe will work."
+        },
+        "YouCompleteMe.triggerStringsCpp": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "->",
+              ".",
+              "::",
+              "/",
+              "\"",
+              "<"
+            ]
+          },
+          "default": [
+            "->",
+            ".",
+            "::",
+            "/",
+            "\"",
+            "<"
+          ],
+          "description": "The trigger char sequences for Ycmd to complete"
+        },
+        "YouCompleteMe.reparseTimeout": {
+          "type": "number",
+          "default": 1000,
+          "description": "The inactivity time after which the current document will be reparsed (in ms)"
+        },
+        "YouCompleteMe.logLevel": {
+          "type": "string",
+          "default": "info",
+          "description": "Controls log verbosity",
+          "enum": [
+            "all",
+            "trace",
+            "debug",
+            "info",
+            "warning",
+            "error",
+            "fatal",
+            "none"
+          ]
+        }
+      }
     },
-    "scripts": {
-        "vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install",
-        "test": "npm run compile && node ./node_modules/vscode/bin/test"
-    },
-    "devDependencies": {
-        "typescript": "^2.6.1",
-        "vscode": "^1.1.6",
-        "@types/node": "^7.0.43",
-        "@types/mocha": "^2.2.42"
-    }
+    "commands": []
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "npm run compile && node ./node_modules/vscode/bin/test"
+  },
+  "devDependencies": {
+    "typescript": "^2.6.1",
+    "vscode": "^1.1.6",
+    "@types/node": "^7.0.43",
+    "@types/mocha": "^2.2.42"
+  }
 }

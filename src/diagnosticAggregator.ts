@@ -179,58 +179,72 @@ export class DiagnosticAggregator
 
 	private async SetDiagsForDoc(doc: string)
 	{
-		let arr = this.diagnostics[doc]
-		let pDiags = arr.map(diagInfo => {
-			let diag = diagInfo.diag
-			diag.SetExtendedDiags(diagInfo.details.map(
-				detail => new YcmExtendedDiagnostic(detail.location, detail.text)
-			))
-			return diag.ToVscodeDiagnostic()
-		})
-		this.vscodeDiagCollection.set(Uri.file(doc), await Promise.all(pDiags))
+		try
+		{
+			let arr = this.diagnostics[doc]
+			let pDiags = arr.map(diagInfo => {
+				let diag = diagInfo.diag
+				diag.SetExtendedDiags(diagInfo.details.map(
+					detail => new YcmExtendedDiagnostic(detail.location, detail.text)
+				))
+				return diag.ToVscodeDiagnostic()
+			})
+			this.vscodeDiagCollection.set(Uri.file(doc), await Promise.all(pDiags))
+		}
+		catch(e)
+		{
+			Log.Error(`Error setting diagnostics for document ${doc}: ${e}`)
+		}
 	}
 
 	async AddDiagnostics(contextDoc: string, diags: YcmDiagnosticData[]): Promise<void>
 	{
-		await Promise.all(diags.map(diag => diag.ResolveExtendedDiags()))
-		let prevAffectedDocs = new Set(this.GetArray(this.affectedDocs, contextDoc))
-		let newAffectedDocs = new Set<string>()
-		for(let diag of diags)
+		try
 		{
-			newAffectedDocs.add(diag.location.filepath)
-		}
-		this.affectedDocs[contextDoc] = [...newAffectedDocs]
-		//clear affectedDocs
-		{
-			let newClearDocs = new Set([...prevAffectedDocs].filter(val => !newAffectedDocs.has(val)))
-			for(let doc of newClearDocs)
+			await Promise.all(diags.map(diag => diag.ResolveExtendedDiags()))
+			let prevAffectedDocs = new Set(this.GetArray(this.affectedDocs, contextDoc))
+			let newAffectedDocs = new Set<string>()
+			for(let diag of diags)
 			{
-				let docDiags = this.GetArray(this.diagnostics, doc)
-				//clears 
-				this.diagnostics[doc] = docDiags.filter(diag => diag.ProcessDocClearance(doc))
-				this.SetDiagsForDoc(doc)
+				newAffectedDocs.add(diag.location.filepath)
+			}
+			this.affectedDocs[contextDoc] = [...newAffectedDocs]
+			//clear affectedDocs
+			{
+				let newClearDocs = new Set([...prevAffectedDocs].filter(val => !newAffectedDocs.has(val)))
+				for(let doc of newClearDocs)
+				{
+					let docDiags = this.GetArray(this.diagnostics, doc)
+					//clears 
+					this.diagnostics[doc] = docDiags.filter(diag => diag.ProcessDocClearance(doc))
+					this.SetDiagsForDoc(doc)
+				}
+			}
+			for(let affectedDoc of newAffectedDocs)
+			{
+				//process the diagnostics in all the docs
+				let prevDiags = this.GetArray(this.diagnostics, affectedDoc)
+				prevDiags = prevDiags.filter(diag => diag.ProcessDocUpdate(contextDoc, diags))
+				prevDiags = prevDiags.concat(
+					diags.filter(
+						diag => diag.location.filepath === affectedDoc && !prevDiags.some(
+							diag2 => diag2.IsEquivalent(diag)
+						)
+					).map(
+						diag => {
+							let nInfo = new DiagInfo(diag, contextDoc)
+							Log.Info("Adding new diag ", nInfo.ToString(), " to document ", contextDoc)
+							return nInfo
+						}
+					)
+				)
+				this.diagnostics[affectedDoc] = prevDiags
+				this.SetDiagsForDoc(affectedDoc)
 			}
 		}
-		for(let affectedDoc of newAffectedDocs)
+		catch(e)
 		{
-			//process the diagnostics in all the docs
-			let prevDiags = this.GetArray(this.diagnostics, affectedDoc)
-			prevDiags = prevDiags.filter(diag => diag.ProcessDocUpdate(contextDoc, diags))
-			prevDiags = prevDiags.concat(
-				diags.filter(
-					diag => diag.location.filepath === affectedDoc && !prevDiags.some(
-						diag2 => diag2.IsEquivalent(diag)
-					)
-				).map(
-					diag => {
-						let nInfo = new DiagInfo(diag, contextDoc)
-						Log.Info("Adding new diag ", nInfo.ToString(), " to document ", contextDoc)
-						return nInfo
-					}
-				)
-			)
-			this.diagnostics[affectedDoc] = prevDiags
-			this.SetDiagsForDoc(affectedDoc)
+			Log.Error("Error adding diagnostics to doc ", contextDoc, ": ", e)
 		}
 	}
 
