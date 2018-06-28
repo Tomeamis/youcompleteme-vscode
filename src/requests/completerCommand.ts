@@ -31,23 +31,9 @@ export class CompleterCommandRequest extends YcmSimpleRequest
 
 	public async Send(server: YcmServer): Promise<CompleterCommandResponse>
 	{
-		let pResponse = server.SendData("/run_completer_command", this)
-		try
-		{
-			return CompleterCommandResponse.Create(await pResponse)
-		}
-		catch(err)
-		{
-			if(await HandleRequestError(err))
-			{
-				return this.Send(server)
-			}
-			else
-			{
-				//just false, return null
-				return null
-			}
-		}
+		let p = super.Send(server, '/completions')
+		let res = await p
+		return CompleterCommandResponse.Create(res)
 	}
 
 }
