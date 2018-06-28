@@ -196,7 +196,7 @@ export class YcmLocation
 	{
 		return this.line_num === other.line_num &&
 			this.column_num === other.column_num &&
-			this.filepath === other.filepath
+			this.filepath.normalizedPath === other.filepath.normalizedPath
 	}
 
 	public async GetVscodeLoc(): Promise<VscodeLoc>
