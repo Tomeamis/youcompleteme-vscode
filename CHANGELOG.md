@@ -5,6 +5,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [v0.2.7]
+
+- Fix errors in communication with the server.
+
 ## [v0.2.2]
 
 - Improve diagnostics so that every diagnostic is displayed in 
