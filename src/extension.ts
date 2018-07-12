@@ -2,12 +2,60 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import {Log, ExtensionGlobals, LogLevelFromString} from './utils'
-
+import {Log, ExtensionGlobals} from './utils'
 import {YcmCppCompletionProvider} from './requests/completions'
-import { workspace, languages } from 'vscode';
+import { languages } from 'vscode';
 import { YcmDefinitionProvider } from './requests/completerCommand';
 import { YcmServer } from './server';
+import { ConfigItem } from './extensionConfig';
+
+class MultiOptionProviderRegistrator implements vscode.Disposable
+{
+	private disposable: vscode.Disposable
+
+	public constructor(
+		private haveRelevantConfigsChanged: () => boolean,
+		private updateProvider: () => vscode.Disposable
+	)
+	{
+		this.disposable = updateProvider()
+		ExtensionGlobals.extConfig.onDidChange(() => this.TryUpdateProvider())
+	}
+
+	TryUpdateProvider()
+	{
+		//if it's not undef and config hasn't changed, just keep the old one
+		if(!this.haveRelevantConfigsChanged())
+		{
+			return
+		}
+		//dispose the old provider
+		this.disposable.dispose()
+		//add new provider
+		this.updateProvider()
+	}
+
+	public dispose()
+	{
+		this.disposable.dispose()
+	}
+}
+
+class SingleOptionProviderRegistrator<T> implements vscode.Disposable
+{
+	private disposable: vscode.Disposable
+
+	constructor(cfg: ConfigItem<T>, private updateProvider: (nval: T) => vscode.Disposable)
+	{
+		this.disposable = updateProvider(cfg.value)
+		cfg.onDidChangeValue(nval => this.disposable = this.updateProvider(nval))
+	}
+
+	public dispose()
+	{
+		this.disposable.dispose()
+	}
+}
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -15,10 +63,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 	ExtensionGlobals.Init(context)
-	{
-		let levelStr = workspace.getConfiguration("YouCompleteMe").get("logLevel") as string
-		Log.SetLevel(LogLevelFromString(levelStr));
-	}
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
@@ -41,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(disposable);*/
 
-	let filetypes = workspace.getConfiguration("YouCompleteMe").get("filetypes") as string[]
+	let filetypes = ExtensionGlobals.extConfig.filetypes
 	let editTracker = ExtensionGlobals.editTracker
 
 	disposable = vscode.workspace.onDidChangeTextDocument(x => editTracker.HandleDocChange(x))
@@ -54,16 +98,26 @@ export function activate(context: vscode.ExtensionContext) {
 	disposable = vscode.window.onDidChangeActiveTextEditor(x => {if(x) editTracker.SendDocReparseNotification(x.document)})
 	context.subscriptions.push(disposable)
 	
-	let triggers = workspace.getConfiguration("YouCompleteMe").get("triggerStringsCpp") as string[]
-	disposable = vscode.languages.registerCompletionItemProvider(
-		filetypes,
-		new YcmCppCompletionProvider(triggers),
-		//VScode uses first char, we want last
-		...triggers.map(seq => seq.slice(-1))
-	);
+	disposable = new MultiOptionProviderRegistrator(
+		() => {
+			let config = ExtensionGlobals.extConfig
+			return config.filetypes.wasChanged || config.triggerStrings.wasChanged
+		}, () => {
+			let config = ExtensionGlobals.extConfig
+			let filetypes = config.filetypes.value
+			let triggers = config.triggerStrings.value
+			return vscode.languages.registerCompletionItemProvider(
+				filetypes,
+				new YcmCppCompletionProvider(triggers.cpp),
+				...triggers.cpp.map(seq => seq.slice(-1))
+			)
+		}
+	)
 	context.subscriptions.push(disposable)
 
-	disposable = languages.registerDefinitionProvider(filetypes, new YcmDefinitionProvider)
+	disposable = new SingleOptionProviderRegistrator(
+		filetypes, nval => languages.registerDefinitionProvider(nval, new YcmDefinitionProvider())
+	)
 	context.subscriptions.push(disposable)
 
 	context.subscriptions.push(vscode.commands.registerCommand("YcmShutdownServer", () => YcmServer.Shutdown()))

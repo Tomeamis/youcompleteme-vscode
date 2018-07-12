@@ -4,7 +4,6 @@ import {workspace, Position, TextDocument, Memento, Range, window, Location, Uri
 import {YcmServer} from '../server'
 import { YcmLoadExtraConfRequest } from './load_extra_conf';
 import { Log, ExtensionGlobals } from '../utils';
-import { YcmSettings } from '../ycmConfig';
 
 export class VscodeLoc 
 {
@@ -37,7 +36,7 @@ export namespace YcmFileDataMapKeeper
 
 	export async function GetDataMap(requiredFilePath: YcmFilepath): Promise<YcmFileDataMap>
 	{
-		let filetypes = workspace.getConfiguration('YouCompleteMe').get('filetypes') as string[]
+		let filetypes = ExtensionGlobals.extConfig.filetypes.value
 		let reqFilePresent = false
 		workspace.textDocuments.forEach(doc => {
 			if(filetypes.find(filetype => filetype === doc.languageId))

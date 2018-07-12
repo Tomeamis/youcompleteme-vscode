@@ -2,6 +2,7 @@ import { Memento, ExtensionContext, OutputChannel, window, Disposable, workspace
 import { EditCompletionTracker } from "./editCompletionTracker";
 import { DiagnosticAggregator } from "./diagnosticAggregator";
 import * as fs from 'fs';
+import { ExtensionConfig } from "./extensionConfig";
 import JsonMemory = require('json-memory')
 import * as path from 'path'
 import * as makeDir from 'make-dir'
@@ -163,6 +164,7 @@ export class ExtensionGlobals
 	static output: OutputChannel
 	static diags: DiagnosticAggregator
 	static watchers: FileWatcherStore
+	static extConfig: ExtensionConfig
 
 	static Init(context: ExtensionContext)
 	{
@@ -175,9 +177,9 @@ export class ExtensionGlobals
 		this.diags = new DiagnosticAggregator(context)
 		this.watchers = new FileWatcherStore()
 		this.localSettings = new LocalSettings()
+		this.extConfig = new ExtensionConfig()
+		context.subscriptions.push(this.output, this.extConfig)
 	}
-
-	
 
 }
 
@@ -219,13 +221,6 @@ export function LogLevelFromString(str: string): LogLevel
 export class Log
 {
 
-	static level : LogLevel
-
-	static SetLevel(level : LogLevel)
-	{
-		Log.level = level;
-	}
-
 	static Trace(...args): void
 	{
 		Log.WriteLog(LogLevel.TRACE, ...args)
@@ -258,7 +253,7 @@ export class Log
 
 	static WriteLog(level: LogLevel, ...args)
 	{
-		if(Log.level >= level)
+		if(ExtensionGlobals.extConfig.logLevel.value >= level)
 		{
 			switch(level)
 			{

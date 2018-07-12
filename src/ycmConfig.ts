@@ -3,14 +3,13 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { Log, ExtensionGlobals } from './utils';
-import { workspace } from 'vscode';
 
 export class YcmSettings
 {
 
 	static async LoadDefault()
 	{
-		let ycmdPath = workspace.getConfiguration("YouCompleteMe").get("ycmdPath") as string
+		let ycmdPath = ExtensionGlobals.extConfig.ycmdPath.value
 		try
 		{
 			return this.LoadJSONFile(path.resolve(ycmdPath, "ycmd/default_settings.json"))
