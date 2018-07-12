@@ -1,8 +1,8 @@
 'use strict'
 
-import {YcmLocation, YcmRange, HandleRequestError} from './utils'
+import {YcmLocation, YcmRange} from './utils'
 import {YcmServer} from '../server'
-import {Diagnostic, DiagnosticSeverity, TextDocument, DiagnosticRelatedInformation, Location, Uri} from 'vscode'
+import {Diagnostic, DiagnosticSeverity, DiagnosticRelatedInformation, Location, Uri} from 'vscode'
 import { YcmSimpleRequest } from './simpleRequest';
 import { YcmExtendedDiagnosticRequest, YcmExtendedDiagnosticResponse, YcmExtendedDiagnostic } from './extendedDiagnostic';
 import { Log } from '../utils';
@@ -21,7 +21,7 @@ export class YcmEventNotification extends YcmSimpleRequest
 
 	async Send(server: YcmServer): Promise<YcmDiagnosticsResponse>
 	{
-		let res = await super.Send(server, '/event_notification')
+		let res = await super.SendSimple(server, '/event_notification')
 		return new YcmDiagnosticsResponse(res)
 	}
 

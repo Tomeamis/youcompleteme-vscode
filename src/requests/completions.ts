@@ -220,7 +220,7 @@ export class YcmCompletionsRequest extends YcmSimpleRequest
 
 	public async Send(server: YcmServer): Promise<YcmCompletionsResponse>
 	{
-		let p = super.Send(server, '/completions')
+		let p = super.SendSimple(server, '/completions')
 		let res = await p
 		return new YcmCompletionsResponse(res, super.GetLocation())
 	}

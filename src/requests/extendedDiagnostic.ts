@@ -54,12 +54,21 @@ export class YcmExtendedDiagnosticRequest extends YcmSimpleRequest
 		super(diagnostic.location)
 	}
 
+	protected HandleException(err)
+	{
+		if(err.message === "No diagnostic for current line!")
+		{
+			//just return empty string to get an empty detailed diagnostic
+			return {message: ""}
+		}
+	}
+
 	//TODO: parse (locations and so on)
 	public async Send(server: YcmServer): Promise<YcmExtendedDiagnosticResponse>
 	{
 		Log.Debug("Sending request for detailed diagnostics:")
 		Log.Trace(this)
-		let p = super.Send(server, "/detailed_diagnostic")
+		let p = super.SendSimple(server, "/detailed_diagnostic")
 		return new YcmExtendedDiagnosticResponse((await p).message)
 	}
 }

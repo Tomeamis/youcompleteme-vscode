@@ -1,6 +1,6 @@
 'use strict'
 
-import { YcmLocation, HandleRequestError, YcmFileDataMap, YcmFileDataMapKeeper } from "./utils";
+import { YcmLocation, YcmFileDataMap, YcmFileDataMapKeeper, ErrorHandler } from "./utils";
 import { YcmServer, YcmdPath } from "../server";
 import { Log } from "../utils";
 import * as path from 'path'
@@ -51,16 +51,16 @@ export class YcmSimpleRequest
 		return new YcmLocation(this.line_num, this.column_num, this.filepath);
 	}
 
-	protected async Send(server: YcmServer, path: YcmdPath): Promise<any>
+	protected HandleException(err)
+	{
+	}
+
+	protected async SendSimple(server: YcmServer, path: YcmdPath): Promise<any>
 	{
 		//promise must be resolved before sending.
 		if(this.file_data instanceof Promise)
 		{
 			this.file_data = await this.file_data
-		}
-		if(typeof this.file_data[this.filepath] === "undefined")
-		{
-			throw `File data missing the filepath ${this.filepath}`
 		}
 		let p = server.SendData(path, this)
 		try
@@ -72,9 +72,17 @@ export class YcmSimpleRequest
 		}
 		catch(err)
 		{
-			if(await HandleRequestError(err))
 			{
-				return this.Send(server, path)
+				//try to let subclass handle the error
+				let handled = this.HandleException(err)
+				if(typeof handled != "undefined")
+				{
+					return handled
+				}
+			}
+			if(await ErrorHandler.HandleRequestError(err))
+			{
+				return this.SendSimple(server, path)
 			}
 			else
 			{

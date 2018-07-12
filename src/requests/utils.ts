@@ -3,8 +3,7 @@
 import {workspace, Position, TextDocument, Memento, Range, window, Location, Uri} from 'vscode'
 import {YcmServer} from '../server'
 import { YcmLoadExtraConfRequest } from './load_extra_conf';
-import { Log } from '../utils';
-import * as path from 'path'
+import { Log, ExtensionGlobals } from '../utils';
 import { YcmSettings } from '../ycmConfig';
 
 export class VscodeLoc 
@@ -310,72 +309,127 @@ function isYcmExceptionResponse(arg: any): arg is YcmExceptionResponse
 	'traceback' in arg
 }
 
-/**
- * Tries to handle an error received from the server.
- * If the request should be retried, returns true
- * If the error should be logged/displayed, rethrows it
- * 
- * @param err The error as an object
- * @returns True if the request should be retried, false otherwise
- */
-export async function HandleRequestError(err): Promise<boolean>
+async function RememberLocalYcmExtraConfFile(path: string, blacklist: boolean = false)
 {
-	//check if the type matches
-	if(!isYcmExceptionResponse(err))
+	let settings = ExtensionGlobals.localSettings
+	try
 	{
-		//type does not match, just return
-		throw err;
-		//TODO: implement file not found
-	}
-	let type = err.exception['TYPE']
-	if(type == "UnknownExtraConf")
-	{
-		let filename = err.exception['extra_conf_file']
-		//ask what to do
-		let choice = await window.showErrorMessage(err.message, "Load", "Load and remember", "Blacklist");
-		if(typeof choice == "undefined")
+		let list = await (blacklist ? settings.extraConfBlacklist : settings.extraConfWhitelist)
+		if(typeof list === "undefined")
 		{
-			return false
+			list = []
 		}
-		if(choice == "Load and remember")
+		list.push(path)
+		if(blacklist)
 		{
-			YcmSettings.RememberLocalYcmFile(filename, false)
-		}
-		else if(choice == "Blacklist")
-		{
-			YcmSettings.RememberLocalYcmFile(filename, true)
-		}
-		//load the file
-		if(choice.startsWith("Load"))
-		{
-			let extraConfReq = new YcmLoadExtraConfRequest(filename)
-			let extraConfLoaded = await extraConfReq.Send(await YcmServer.GetInstance())
-			if(extraConfLoaded.err)
-			{
-				return HandleRequestError(extraConfLoaded.err)
-			}
-			else
-			{
-				return true
-			}
-		}
-	}
-	else if(type == "RuntimeError")
-	{
-		if(err.message == "Can't jump to definition or declaration.")
-		{
-			Log.Info("GoTo lookup failed");
-			return false
+			settings.SetExtraConfBlacklist(list)
 		}
 		else
 		{
-			Log.Error("HandleRequestError: Unknown runtime error: ", err)
+			settings.SetExtraConfWhitelist(list)
+		}
+	}
+	catch(err)
+	{
+		Log.Error("Error remembering extra conf file: ", err)
+	}
+}
+
+export class ErrorHandler
+{
+
+	private static watchedExtraConfs: Set<string>
+	/**
+	 * Tries to handle an error received from the server.
+	 * If the request should be retried, returns true
+	 * If the error should be logged/displayed, rethrows it
+	 * 
+	 * @param err The error as an object
+	 * @returns True if the request should be retried, false otherwise
+	 */
+	static async HandleRequestError(err): Promise<boolean>
+	{
+		if(typeof this.watchedExtraConfs === "undefined")
+		{
+			this.watchedExtraConfs = new Set()
+		}
+		//check if the type matches
+		if(!isYcmExceptionResponse(err))
+		{
+			//type does not match, just return
+			throw err;
+			//TODO: implement file not found
+		}
+		let type = err.exception['TYPE']
+		if(type == "UnknownExtraConf")
+		{
+			//TODO: check black/whitelist
+			let filename = err.exception['extra_conf_file'] as string
+			let choice: string = undefined
+			if((await ExtensionGlobals.localSettings.extraConfWhitelist).some(wlFile => wlFile === filename))
+			{
+				//whitelisted, go ahead and load
+				choice = "Load"
+			}
+			else if((await ExtensionGlobals.localSettings.extraConfBlacklist).some(blFile => blFile === filename))
+			{
+				//leave undefined
+			}
+			else
+			{
+				//ask what to do
+				choice = await window.showErrorMessage(err.message, "Load", "Load and remember", "Blacklist");
+			}
+			if(typeof choice == "undefined")
+			{
+				return false
+			}
+			if(choice == "Load and remember")
+			{
+				RememberLocalYcmExtraConfFile(filename, false)
+			}
+			else if(choice == "Blacklist")
+			{
+				RememberLocalYcmExtraConfFile(filename, true)
+			}
+			//load the file
+			if(choice.startsWith("Load"))
+			{
+				if(!this.watchedExtraConfs.has(filename))
+				{
+					this.watchedExtraConfs.add(filename)
+					YcmLoadExtraConfRequest.WatchExtraConfForChanges(filename)
+				}
+				let extraConfReq = new YcmLoadExtraConfRequest(filename)
+				let extraConfLoaded = await extraConfReq.Send(await YcmServer.GetInstance())
+				if(extraConfLoaded.err)
+				{
+					return this.HandleRequestError(extraConfLoaded.err)
+				}
+				else
+				{
+					return true
+				}
+			}
+		}
+		else if(type == "RuntimeError")
+		{
+			if(err.message == "Can't jump to definition or declaration.")
+			{
+				Log.Info("GoTo lookup failed");
+				return false
+			}
+			else
+			{
+				Log.Error("HandleRequestError: Unknown runtime error: ", err)
+				throw err
+			}
+		}
+		else
+		{
+			Log.Error("HandleRequestError: Unknown error: ", err)
 			throw err
 		}
 	}
-	else
-	{
-		Log.Error("HandleRequestError: Unknown error: ", err)
-		throw err
-	}
+
 }

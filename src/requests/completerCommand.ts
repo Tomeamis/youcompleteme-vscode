@@ -2,7 +2,7 @@
 
 
 import {YcmServer} from '../server'
-import { YcmLocation, HandleRequestError } from './utils';
+import { YcmLocation } from './utils';
 import { Log } from '../utils';
 import { DefinitionProvider, TextDocument, Position, CancellationToken, Location } from 'vscode';
 import { YcmSimpleRequest } from './simpleRequest';
@@ -31,7 +31,7 @@ export class CompleterCommandRequest extends YcmSimpleRequest
 
 	public async Send(server: YcmServer): Promise<CompleterCommandResponse>
 	{
-		let p = super.Send(server, '/run_completer_command')
+		let p = super.SendSimple(server, '/run_completer_command')
 		let res = await p
 		return CompleterCommandResponse.Create(res)
 	}

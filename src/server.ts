@@ -2,7 +2,7 @@
 
 import * as ChildProcess from 'child_process'
 import * as Net from 'net'
-import {workspace} from 'vscode'
+import {workspace, Disposable} from 'vscode'
 import * as Path from 'path';
 import {randomBytes, createHmac} from 'crypto'
 import * as Fs from 'fs'
@@ -11,6 +11,7 @@ import {Log, ExtensionGlobals} from './utils'
 import * as Http from 'http'
 import * as QueryString from 'querystring'
 import { YcmSettings } from './ycmConfig';
+import { YcmLoadExtraConfRequest } from './requests/load_extra_conf';
 
 export type YcmdPath = 
 	'/completions' |
@@ -19,7 +20,8 @@ export type YcmdPath =
 	'/detailed_diagnostic' |
 	'/event_notification' |
 	'/load_extra_conf_file' |
-	'/run_completer_command'
+	'/run_completer_command' |
+	'/shutdown'
 
 /**
  * Makes the ycmd setting file to pass to Ycmd, returns it's path
@@ -91,6 +93,12 @@ async function MakeYcmdSettings(secret: string)
 	let [defaults, local] = await Promise.all([pDefaults, pLocal])
 	//override the defaults
 	Object.keys(local).forEach(key => defaults[key] = local[key]);
+	Object.getOwnPropertyNames(defaults).forEach(name => {
+		if(defaults[name] instanceof Array)
+		{
+			defaults[name] = [...(new Set(defaults[name]))]
+		}
+	})
 	defaults["hmac_secret"] = secret
 	return defaults
 }
@@ -99,10 +107,11 @@ async function MakeYcmdSettings(secret: string)
 
 export class YcmServer
 {
-	static alive: boolean
+	private static alive: boolean
 	private secret: Buffer
 	private port: number
-	static instance: Promise<YcmServer>
+	private static instance: Promise<YcmServer>
+	private static watchedFiles: Disposable[]
 	//hmac alg + and the resulting hash length
 	static readonly hmacHashAlg = 'sha256'
 	static readonly hmacLen = 32
@@ -209,6 +218,18 @@ export class YcmServer
 		return YcmServer.instance;
 	}
 
+	public static async Shutdown()
+	{
+		if(typeof YcmServer.instance === "undefined")
+		{
+			//no server, no action necessary
+			return
+		}
+		let server = YcmServer.instance
+		YcmServer.instance = undefined
+		YcmServer.alive = false
+	}
+
 	public SendData(path: YcmdPath, data: any): Promise<any>
 	{
 		let method: string
@@ -225,12 +246,19 @@ export class YcmServer
 			method = "POST"
 			body = JSON.stringify(data)
 			reqPath = path
-			break;
+			break
+		case '/shutdown':
+			method = "POST"
+			body = ''
+			reqPath = path
+			break
 		case '/healthy':
 			method = "GET"
 			body = '';
 			reqPath = `${path}?${QueryString.stringify(data)}`
-			break;
+			break
+		default:
+			throw "unknown path suppiled to YcmServer.SendData"
 		}
 		let hmac = this.ComputeReqHmac(method, path, body)
 		let options = {

@@ -1,6 +1,8 @@
 'use strict'
 
 import {YcmServer} from '../server'
+import { ExtensionGlobals } from '../utils';
+import { window } from 'vscode';
 
 export class YcmLoadExtraConfResponse
 {
@@ -31,6 +33,17 @@ export class YcmLoadExtraConfRequest
 			//TODO: call handler
 			return new YcmLoadExtraConfResponse(err)
 		}
+	}
+
+	static WatchExtraConfForChanges(path: string): void
+	{
+		ExtensionGlobals.watchers.WatchFile(path, async () => {
+			let choice = await window.showInformationMessage(`Ycm extra conf file ${path} has changed. Restart server?`, "Yes", "No")
+			if(choice && choice === "Yes")
+			{
+				YcmServer.Shutdown();
+			}
+		})
 	}
 
 }

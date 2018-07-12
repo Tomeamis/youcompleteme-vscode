@@ -89,24 +89,6 @@ export class YcmSettings
 		return path.resolve(ExtensionGlobals.workingDir, ".vscode", "ycmd_settings.json");
 	}
 
-	static async RememberLocalYcmFile(filename: string, blacklist = false)
-	{
-		let localSettings = await this.LoadLocal()
-		if(blacklist)
-		{
-			filename = "!"+filename
-		}
-		if(!localSettings.extra_conf_globlist)
-		{
-			localSettings.extra_conf_globlist = [filename]
-		}
-		else
-		{
-			localSettings.extra_conf_globlist.push(filename)
-		}
-		this.StoreLocal(localSettings)
-	}
-
 	static async StoreLocal(newSettings)
 	{
 		let data = Buffer.from(JSON.stringify(newSettings), 'utf-8')
