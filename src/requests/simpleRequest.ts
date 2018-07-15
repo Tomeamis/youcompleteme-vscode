@@ -51,44 +51,48 @@ export class YcmSimpleRequest
 		return new YcmLocation(this.line_num, this.column_num, this.filepath);
 	}
 
-	protected HandleException(err)
+	protected HandleException(err): any
 	{
 	}
 
-	protected async SendSimple(server: YcmServer, path: YcmdPath): Promise<any>
+	protected Send(server: YcmServer, path: YcmdPath): Promise<any>
 	{
+		//for recursion
+		let implFunc = async () => {
 		//promise must be resolved before sending.
-		if(this.file_data instanceof Promise)
-		{
-			this.file_data = await this.file_data
-		}
-		let p = server.SendData(path, this)
-		try
-		{
-			let res = await p
-			Log.Debug(`${path} response: `)
-			Log.Trace(res)
-			return res
-		}
-		catch(err)
-		{
+			if(this.file_data instanceof Promise)
 			{
-				//try to let subclass handle the error
-				let handled = this.HandleException(err)
-				if(typeof handled != "undefined")
+				this.file_data = await this.file_data
+			}
+			let p = server.SendData(path, this)
+			try
+			{
+				let res = await p
+				Log.Debug(`${path} response: `)
+				Log.Trace(res)
+				return res
+			}
+			catch(err)
+			{
 				{
-					return handled
+					//try to let subclass handle the error
+					let handled = this.HandleException(err)
+					if(typeof handled != "undefined")
+					{
+						return handled
+					}
+				}
+				if(await ErrorHandler.HandleRequestError(err))
+				{
+					return implFunc()
+				}
+				else
+				{
+					//TODO: return empty
 				}
 			}
-			if(await ErrorHandler.HandleRequestError(err))
-			{
-				return this.SendSimple(server, path)
-			}
-			else
-			{
-				//TODO: return empty
-			}
 		}
+		return implFunc()
 	}
 
 }

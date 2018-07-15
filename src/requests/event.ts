@@ -21,7 +21,7 @@ export class YcmEventNotification extends YcmSimpleRequest
 
 	async Send(server: YcmServer): Promise<YcmDiagnosticsResponse>
 	{
-		let res = await super.SendSimple(server, '/event_notification')
+		let res = await super.Send(server, '/event_notification')
 		return new YcmDiagnosticsResponse(res)
 	}
 

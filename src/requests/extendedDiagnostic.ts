@@ -68,7 +68,7 @@ export class YcmExtendedDiagnosticRequest extends YcmSimpleRequest
 	{
 		Log.Debug("Sending request for detailed diagnostics:")
 		Log.Trace(this)
-		let p = super.SendSimple(server, "/detailed_diagnostic")
+		let p = super.Send(server, "/detailed_diagnostic")
 		return new YcmExtendedDiagnosticResponse((await p).message)
 	}
 }
