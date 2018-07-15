@@ -5,6 +5,13 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [v0.3.0]
+
+- Fix errors handling extended diagnostics
+- Add command to shut the server down
+- Watch ycm_extra_conf files for changes and ask to restart on change
+- Fix some more errors in communication with the server
+
 ## [v0.2.7]
 
 - Fix errors in communication with the server.

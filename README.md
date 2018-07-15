@@ -24,7 +24,8 @@ This extension is very much a work in (slow) progress
 
 You must have Python and Ycmd somewhere. I may publish actual instructions 
 on how to build it sometime in the future.
-For now 
+For now see https://github.com/Valloric/ycmd/blob/master/README.md for some instructions.
+Also useful is ./build.py --help
 
 ## Extension Settings
 
@@ -37,6 +38,11 @@ This extension contributes the following settings:
 * `YouCompleteMe.reparseTimeout`: After this many milliseconds with no edits, the extension will 
 	reparse the current file and add diagnostics
 * `YouCompleteMe.logLevel`: The verbosity of logging
+
+## Commands
+
+* `YCM: Shutdown server`: Shutdown YCM server. It will be started again with reloaded settings
+	when a request is sent to it.
 
 ## Known Issues
 
