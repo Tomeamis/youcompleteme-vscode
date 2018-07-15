@@ -52,6 +52,7 @@ class ExtendedDiagInfo
 		{
 			//this diagnostic was found in the doc, so add it as an origin
 			this.originDocs.add(doc)
+			return true
 		}
 		else
 		{
@@ -135,7 +136,7 @@ class DiagInfo extends ExtendedDiagInfo
 			//add new diags
 			this.details = this.details.concat(
 				matchingDiag.GetExtendedDiags().filter(
-					diag => this.details.some(detail => detail.IsEquivalent(diag))
+					diag => !this.details.some(detail => detail.IsEquivalent(diag))
 				).map(diag => {
 					let nInfo = new ExtendedDiagInfo(diag.location, diag.text, doc)
 					Log.Info("Adding extended info ", nInfo.ToString(), " to diag ", this.ToString())
