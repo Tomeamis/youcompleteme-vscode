@@ -59,17 +59,12 @@ export namespace YcmFileDataMapKeeper
 			AddDoc(nDoc)
 		}
 		let nmap: YcmFileDataMap = {}
-		for(let key in stData)
-		{
-			if(key === requiredFilePath.normalizedPath)
-			{
-				nmap[requiredFilePath.receivedPath] = stData[key]
-			}
-			else
-			{
-				nmap[key] = stData[key]
-			}
-		}
+		//send dirty documents, required doc will be sent later
+		workspace.textDocuments.filter(doc => 
+			doc.isDirty && doc.fileName !== requiredFilePath.normalizedPath
+		).forEach(doc => nmap[doc.fileName] = stData[doc.fileName])
+		//add required doc
+		nmap[requiredFilePath.receivedPath] = stData[requiredFilePath.normalizedPath]
 		return nmap
 	}
 
