@@ -5,6 +5,7 @@ import { YcmLocation, YcmRange } from './requests/utils'
 import { YcmExtendedDiagnostic } from './requests/extendedDiagnostic';
 import { DiagnosticCollection, languages, Uri, ExtensionContext } from 'vscode';
 import { Log } from './utils';
+import { readSync } from 'fs';
 
 interface DiagEquivalenceInfo
 {
@@ -188,9 +189,12 @@ export class DiagnosticAggregator
 				diag.SetExtendedDiags(diagInfo.details.map(
 					detail => new YcmExtendedDiagnostic(detail.location, detail.text)
 				))
-				return diag.ToVscodeDiagnostic()
+				return diag.ToVscodeDiagnostic().catch(reason => {
+					Log.Error("Transforming Ycm diganostic to VScode diag failed: ", reason)
+					return null
+				})
 			})
-			this.vscodeDiagCollection.set(Uri.file(doc), await Promise.all(pDiags))
+			this.vscodeDiagCollection.set(Uri.file(doc), (await Promise.all(pDiags)).filter(diag => diag))
 		}
 		catch(e)
 		{
