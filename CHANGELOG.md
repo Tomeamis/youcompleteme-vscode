@@ -5,6 +5,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [v0.3.1]
+
+- If a diagnostic fails to resolve, just ignore it
+- Fix loading of extra_conf files
+
 ## [v0.3.0]
 
 - Fix errors handling extended diagnostics
