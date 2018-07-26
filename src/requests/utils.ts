@@ -244,7 +244,8 @@ function YcmOffsetToStringOffset(text: string, offset: number): number
 	{
 		Log.Error("Ycm offset greater than byte length: ", offset, ">", bytes.length)
 		Log.Debug("Line: ", text)
-		throw "Ycm offset greater than byte length"
+		//text length, to handle errors
+		return text.length
 	}
 	//if offset points to end of buffer, return end of string
 	else if(offset == bytes.length)

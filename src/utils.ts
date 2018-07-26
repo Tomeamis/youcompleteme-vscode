@@ -35,9 +35,20 @@ export class PersistentDict
 		})
 	}
 
-	async GetVal(key: string): Promise<any>
+	async GetVal(key: string, defaultVal?: any): Promise<any>
 	{
-		return (await this.storage)[key]
+		let result
+		try
+		{
+			result = (await this.storage)[key]
+		}
+		catch(err)
+		{}
+		if(typeof result === "undefined")
+		{
+			return defaultVal
+		}
+		return result
 	}
 
 	async SetVal(key: string, val: any, ensurePathExists?: boolean): Promise<void>
@@ -84,7 +95,7 @@ class LocalSettings
 
 	public get extraConfWhitelist(): Promise<string[]>
 	{
-		return this.store.GetVal(this.names.extraConfWhitelist);
+		return this.store.GetVal(this.names.extraConfWhitelist, [])
 	}
 
 	public SetExtraConfWhitelist(val: string[])
@@ -94,7 +105,7 @@ class LocalSettings
 
 	public get extraConfBlacklist(): Promise<string[]>
 	{
-		return this.store.GetVal(this.names.extraConfBlacklist);
+		return this.store.GetVal(this.names.extraConfBlacklist, []);
 	}
 
 	public SetExtraConfBlacklist(val: string[])
