@@ -217,12 +217,12 @@ export class DiagnosticAggregator
 			//clear affectedDocs
 			{
 				let newClearDocs = new Set([...prevAffectedDocs].filter(val => !newAffectedDocs.has(val)))
-				for(let doc of newClearDocs)
+				for(let clearDoc of newClearDocs)
 				{
-					let docDiags = this.GetArray(this.diagnostics, doc)
+					let docDiags = this.GetArray(this.diagnostics, clearDoc)
 					//clears 
-					this.diagnostics[doc] = docDiags.filter(diag => diag.ProcessDocClearance(doc))
-					this.SetDiagsForDoc(doc)
+					this.diagnostics[clearDoc] = docDiags.filter(diag => diag.ProcessDocClearance(contextDoc))
+					this.SetDiagsForDoc(clearDoc)
 				}
 			}
 			for(let affectedDoc of newAffectedDocs)

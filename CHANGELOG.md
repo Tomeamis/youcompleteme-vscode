@@ -5,6 +5,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [v0.3.2]
+
+- Fix clearing of diagnostics when they are reported from multiple files
+
 ## [v0.3.1]
 
 - If a diagnostic fails to resolve, just ignore it
