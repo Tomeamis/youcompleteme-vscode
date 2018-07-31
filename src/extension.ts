@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import {Log, ExtensionGlobals} from './utils'
 import {YcmCFamCompletionProvider} from './requests/completions'
 import { languages } from 'vscode';
-import { YcmDefinitionProvider, YcmGetTypeProvider } from './requests/completerCommand';
+import { YcmDefinitionProvider, YcmGetTypeProvider, YcmCodeActionProvider } from './requests/completerCommand';
 import { YcmServer } from './server';
 import { ConfigItem } from './extensionConfig';
 
@@ -134,6 +134,12 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		new SingleOptionProviderRegistrator(
 			filetypes, nval => languages.registerHoverProvider(nval, new YcmGetTypeProvider())
+		)
+	)
+
+	context.subscriptions.push(
+		new SingleOptionProviderRegistrator(
+			filetypes, nval => languages.registerCodeActionsProvider(nval, new YcmCodeActionProvider())
 		)
 	)
 

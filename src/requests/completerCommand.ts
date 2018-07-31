@@ -22,6 +22,10 @@ export class CompleterCommandResponse
 			//TODO: other message responses?
 			return new YcmGetTypeResponse(obj)
 		}
+		else if(obj.fixits)
+		{
+			return new YcmFixItResponse(obj);
+		}
 		//TODO: other messages
 		Log.Error("Unimplemented completer command response: ", obj)
 	}
@@ -182,7 +186,123 @@ export class YcmGetTypeProvider implements HoverProvider
 		catch(err)
 		{
 			Log.Error("Error providing definition: ", err)
+			return null
 		}
 	}
+
+}
+
+export class YcmFixIt
+{
+	public text: string
+	public location: YcmLocation
+	public chunks: YcmFixItChunk[]
+
+	constructor(obj)
+	{
+		this.text = obj.text
+		this.location = obj.location
+		let chunks = obj.chunks as Array<any>
+		this.chunks = chunks.map(item => new YcmFixItChunk(item))
+	}
+
+	async ToVscodeCodeAction(): Promise<CodeAction>
+	{
+		let action = new CodeAction(this.text, CodeActionKind.QuickFix)
+		action.edit = new WorkspaceEdit();
+		for(let chunk of this.chunks)
+		{
+			action.edit.replace(Uri.file(
+				chunk.range.GetFilepath().normalizedPath), 
+				await chunk.range.ToVscodeRange(),
+				chunk.replacement_text
+			)
+		}
+		return action
+	}
+
+}
+
+export class YcmFixItChunk
+{
+	public replacement_text: string
+	public range: YcmRange
+
+	constructor(obj)
+	{
+		this.replacement_text = obj.replacement_text
+		this.range = YcmRange.FromSimpleObject(obj.range)
+	}
+
+	async ToVscodeTextEdit(): Promise<TextEdit>
+	{
+		return new TextEdit(await this.range.ToVscodeRange(), this.replacement_text)
+	}
+
+}
+
+export class YcmFixItResponse extends CompleterCommandResponse
+{
+
+	public fixits: YcmFixIt[]
+
+	constructor(obj: any)
+	{
+		super()
+		if(!(obj.fixits instanceof Array))
+		{
+			Log.Error("YcmFixItResponse constructor got ", obj)
+			throw "unexpected object in FixIt response"
+		}
+		let fixits = obj.fixits as any[]
+		this.fixits = fixits.map(item => new YcmFixIt(item))
+	}
+}
+
+export class YcmFixItRequest extends CompleterCommandRequest
+{
+
+	constructor(loc: YcmLocation)
+	{
+		super(loc, ["FixIt"])
+	}
+
+	public async Send(server: YcmServer): Promise<YcmFixItResponse>
+	{
+		let res = await super.Send(server)
+		if(res === null)
+		{
+			return null
+		}
+		else if(!(res instanceof YcmFixItResponse))
+		{
+			Log.Error("FixItRequest returned unexpected response type: ", res)
+			throw "FixIt request got unexpected type of response"
+		}
+		return res
+	}
+}
+
+export class YcmCodeActionProvider implements CodeActionProvider
+{
+
+	async provideCodeActions(document: TextDocument, range: Range, context: CodeActionContext, token: CancellationToken): Promise<CodeAction[]> {
+		try
+		{
+			let req = new YcmFixItRequest(YcmLocation.FromVscodePosition(document, range.start))
+			let res = await req.Send(await YcmServer.GetInstance())
+			if(res === null)
+			{
+				return null
+			}
+			return Promise.all(res.fixits.map(fixit => fixit.ToVscodeCodeAction()))
+		}
+		catch(err)
+		{
+			Log.Error("Error providing definition: ", err)
+			return null
+		}
+	}
+	
 
 }
