@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import {Log, ExtensionGlobals} from './utils'
 import {YcmCFamCompletionProvider} from './requests/completions'
 import { languages } from 'vscode';
-import { YcmDefinitionProvider } from './requests/completerCommand';
+import { YcmDefinitionProvider, YcmGetTypeProvider } from './requests/completerCommand';
 import { YcmServer } from './server';
 import { ConfigItem } from './extensionConfig';
 
@@ -130,6 +130,12 @@ export function activate(context: vscode.ExtensionContext) {
 		filetypes, nval => languages.registerDefinitionProvider(nval, new YcmDefinitionProvider())
 	)
 	context.subscriptions.push(disposable)
+
+	context.subscriptions.push(
+		new SingleOptionProviderRegistrator(
+			filetypes, nval => languages.registerHoverProvider(nval, new YcmGetTypeProvider())
+		)
+	)
 
 	context.subscriptions.push(vscode.commands.registerCommand("YcmShutdownServer", () => YcmServer.Shutdown()))
 

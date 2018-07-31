@@ -2,9 +2,9 @@
 
 
 import {YcmServer} from '../server'
-import { YcmLocation } from './utils';
+import { YcmLocation, VscodeLoc, YcmRange } from './utils';
 import { Log } from '../utils';
-import { DefinitionProvider, TextDocument, Position, CancellationToken, Location } from 'vscode';
+import { DefinitionProvider, TextDocument, Position, CancellationToken, Location, languages, workspace, HoverProvider, ProviderResult, Hover, TextEdit, CodeAction, CodeActionKind, WorkspaceEdit, Uri, CodeActionProvider, Range, CodeActionContext } from 'vscode';
 import { YcmSimpleRequest } from './simpleRequest';
 
 
@@ -13,8 +13,17 @@ export class CompleterCommandResponse
 
 	static Create(obj: any): CompleterCommandResponse
 	{
-		//TODO: other types
-		return new YcmGoToResponse(obj)
+		if(obj.filepath)
+		{
+			return new YcmGoToResponse(obj)
+		}
+		else if(obj.message)
+		{
+			//TODO: other message responses?
+			return new YcmGetTypeResponse(obj)
+		}
+		//TODO: other messages
+		Log.Error("Unimplemented completer command response: ", obj)
 	}
 }
 
@@ -103,6 +112,72 @@ export class YcmDefinitionProvider implements DefinitionProvider
 				return null
 			}
 			return (await response.loc.GetVscodeLoc()).ToVscodeLocation()
+		}
+		catch(err)
+		{
+			Log.Error("Error providing definition: ", err)
+		}
+	}
+
+}
+
+export class YcmGetTypeResponse extends CompleterCommandResponse
+{
+
+	public type: string
+
+	constructor(obj: any)
+	{
+		super()
+		if(typeof obj.message !== "string")
+		{
+			Log.Error("GetTypeResponse constructor got ", obj)
+			throw "unexpected object in GetType response"
+		}
+		this.type = obj.message
+	}
+}
+
+export class YcmGetTypeRequest extends CompleterCommandRequest
+{
+
+	constructor(loc: YcmLocation)
+	{
+		super(loc, ["GetType"])
+	}
+
+	public async Send(server: YcmServer): Promise<YcmGetTypeResponse>
+	{
+		let res = await super.Send(server)
+		if(res === null)
+		{
+			return null
+		}
+		else if(!(res instanceof YcmGetTypeResponse))
+		{
+			Log.Error("GetTypeRequest returned unexpected response type: ", res)
+			throw "GetType request got unexpected type of response"
+		}
+		return res
+	}
+}
+
+export class YcmGetTypeProvider implements HoverProvider
+{
+	
+	async provideHover(document: TextDocument, position: Position, token: CancellationToken): Promise<Hover> {
+		try
+		{
+			let pServer = YcmServer.GetInstance()
+			let req = new YcmGetTypeRequest(YcmLocation.FromVscodePosition(document, position))
+			let pResponse = req.Send(await pServer)
+			let response = await pResponse
+			if(response === null)
+			{
+				Log.Info("Definition not found");
+				return null
+			}
+			return new Hover({language: document.languageId, value: response.type})
 		}
 		catch(err)
 		{
