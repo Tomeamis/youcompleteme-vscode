@@ -6,15 +6,21 @@ import { workspace, Disposable, Event, EventEmitter, CompletionTriggerKind } fro
 interface TriggerStrings
 {
 	cpp: string[]
+	c: string[]
+}
+
+function IsStringArray(obj): obj is string[]
+{
+	return obj instanceof Array && obj.every(val => typeof val === "string")
 }
 
 function IsTriggerStrings(obj): obj is TriggerStrings
 {
-	if(obj && typeof obj === "object" && (obj.cpp instanceof Array))
+	if(!obj || typeof obj !== "object")
 	{
-		let cpp = obj.cpp as Array<any>
-		return cpp.every(val => typeof val === "string")
+		return false
 	}
+	return IsStringArray(obj.cpp) && IsStringArray(obj.c);
 }
 
 export interface ConfigItem<T>
@@ -186,7 +192,7 @@ export class ExtensionConfig implements Disposable
 			this._filetypes.value = config.get<string[]>("filetypes")
 			this._reparseTimeout.value = config.get<number>("reparseTimeout")
 			this._logLevel.value = LogLevelFromString(config.get<string>("logLevel"))
-			this._triggerStrings.value = {cpp: config.get<string[]>("triggerStringsCpp")}
+			this._triggerStrings.value = config.get<TriggerStrings>("triggerStrings")
 		}
 		finally
 		{

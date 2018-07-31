@@ -3,7 +3,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import {Log, ExtensionGlobals} from './utils'
-import {YcmCppCompletionProvider} from './requests/completions'
+import {YcmCFamCompletionProvider} from './requests/completions'
 import { languages } from 'vscode';
 import { YcmDefinitionProvider } from './requests/completerCommand';
 import { YcmServer } from './server';
@@ -57,6 +57,31 @@ class SingleOptionProviderRegistrator<T> implements vscode.Disposable
 	}
 }
 
+function RegisterCFamProvider(lang: string, context: vscode.ExtensionContext)
+{
+	let disposable = new MultiOptionProviderRegistrator(
+		() => {
+			let config = ExtensionGlobals.extConfig
+			return config.filetypes.wasChanged || config.triggerStrings.wasChanged
+		}, () => {
+			let config = ExtensionGlobals.extConfig
+			let filetypes = config.filetypes.value
+			if(!filetypes.find(type => type === lang))
+			{
+				//cpp is not being completed
+				return
+			}
+			let triggers = config.triggerStrings.value
+			return vscode.languages.registerCompletionItemProvider(
+				lang,
+				new YcmCFamCompletionProvider(triggers.cpp),
+				...triggers[lang].map(seq => seq.slice(-1))
+			)
+		}
+	)
+	context.subscriptions.push(disposable)
+}
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -97,23 +122,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 	disposable = vscode.window.onDidChangeActiveTextEditor(x => {if(x) editTracker.SendDocReparseNotification(x.document)})
 	context.subscriptions.push(disposable)
-	
-	disposable = new MultiOptionProviderRegistrator(
-		() => {
-			let config = ExtensionGlobals.extConfig
-			return config.filetypes.wasChanged || config.triggerStrings.wasChanged
-		}, () => {
-			let config = ExtensionGlobals.extConfig
-			let filetypes = config.filetypes.value
-			let triggers = config.triggerStrings.value
-			return vscode.languages.registerCompletionItemProvider(
-				filetypes,
-				new YcmCppCompletionProvider(triggers.cpp),
-				...triggers.cpp.map(seq => seq.slice(-1))
-			)
-		}
-	)
-	context.subscriptions.push(disposable)
+
+	RegisterCFamProvider("cpp", context)
+	RegisterCFamProvider("c", context)
 
 	disposable = new SingleOptionProviderRegistrator(
 		filetypes, nval => languages.registerDefinitionProvider(nval, new YcmDefinitionProvider())

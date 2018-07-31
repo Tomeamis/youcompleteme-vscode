@@ -16,7 +16,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:cpp"
+    "onLanguage:cpp",
+    "onLanguage:c"
   ],
   "main": "./out/extension",
   "contributes": {
@@ -39,15 +40,17 @@
           "items": {
             "type": "string",
             "enum": [
-              "cpp"
+              "cpp",
+              "c"
             ]
           },
           "default": [
-            "cpp"
+            "cpp",
+            "c"
           ],
           "description": "Filetypes for which YouCompleteMe will work."
         },
-        "YouCompleteMe.triggerStringsCpp": {
+        "YouCompleteMe.triggerStrings.cpp": {
           "type": "array",
           "items": {
             "type": "string",
@@ -68,7 +71,28 @@
             "\"",
             "<"
           ],
-          "description": "The trigger char sequences for Ycmd to complete"
+          "description": "The trigger char sequences for Ycmd to complete in C++ files"
+        },
+        "YouCompleteMe.triggerStrings.c": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "->",
+              ".",
+              "/",
+              "\"",
+              "<"
+            ]
+          },
+          "default": [
+            "->",
+            ".",
+            "/",
+            "\"",
+            "<"
+          ],
+          "description": "The trigger char sequences for Ycmd to complete in C files"
         },
         "YouCompleteMe.reparseTimeout": {
           "type": "number",

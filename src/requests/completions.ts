@@ -14,7 +14,7 @@ import {YcmServer} from '../server'
 import {Log, ExtensionGlobals} from '../utils'
 import { YcmSimpleRequest, YcmSimpleRequestArgs } from './simpleRequest';
 
-export class YcmCppCompletionProvider implements CompletionItemProvider
+export class YcmCFamCompletionProvider implements CompletionItemProvider
 {
 
 	constructor(private triggerStrings: string[])
