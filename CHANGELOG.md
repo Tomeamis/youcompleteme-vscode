@@ -5,6 +5,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [v0.4.0]
+
+- Support for C
+- Type hovers
+- FixIts
+
 ## [v0.3.2]
 
 - Fix clearing of diagnostics when they are reported from multiple files

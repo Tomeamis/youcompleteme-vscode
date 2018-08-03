@@ -11,14 +11,13 @@ This extension is very much a work in (slow) progress
 - Code completion
 - Go to definition
 - Linting with extended information support
+- Hover provider (types)
+- FixIts
 
 ## Planned features
 
-- Hover provider
-- Detailed diagnostics
 - More completer commands
 - Provide some VSCode commands that fire off Ycmd commands
-- Detect and apply settings changes
 
 ## Requirements
 
@@ -34,7 +33,8 @@ This extension contributes the following settings:
 * `YouCompleteMe.ycmdPath`: Path to ycmd (The path should contain ycmd/default_settings.json)
 * `YouCompleteMe.pythonPath`: Full path of the python executable
 * `YouCompleteMe.filetypes`: filetypes for completion
-* `YouCompleteMe.triggerStringsCpp`: Strings that trigger completion in C++ files
+* `YouCompleteMe.triggerStrings.cpp`: Strings that trigger completion in C++ files
+* `YouCompleteMe.triggerStrings.c`: Strings that trigger completion in C files
 * `YouCompleteMe.reparseTimeout`: After this many milliseconds with no edits, the extension will 
 	reparse the current file and add diagnostics
 * `YouCompleteMe.logLevel`: The verbosity of logging
