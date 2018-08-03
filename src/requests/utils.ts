@@ -290,14 +290,14 @@ function StringOffsetToYcmOffset(text: string, offset: number): number
 	return pos
 }
 
-interface YcmExceptionResponse
+export interface YcmExceptionResponse
 {
 	exception: any
 	message: string
 	traceback: string
 }
 
-function isYcmExceptionResponse(arg: any): arg is YcmExceptionResponse
+export function isYcmExceptionResponse(arg: any): arg is YcmExceptionResponse
 {
 	return 'exception' in arg &&
 	'message' in arg &&
@@ -413,6 +413,11 @@ export class ErrorHandler
 			{
 				Log.Info("GoTo lookup failed");
 				return false
+			}
+			else if(err.message === "Still parsing file, no completions yet.")
+			{
+				Log.Warning("Completions not returned, file is still parsing. If you are seeing this often, try increasing reparse interval.")
+				await new Promise(res => setTimeout(res, 200))
 			}
 			else
 			{

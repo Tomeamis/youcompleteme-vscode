@@ -170,10 +170,10 @@ export class YcmServer
 				throw "Failed to start Ycmd process"
 			}
 			cp.stderr.on("data", (chunk: Buffer) => {
-				Log.Info("Ycmd stderr: ", chunk.toString('utf-8'));
+				Log.Debug("Ycmd stderr: ", chunk.toString('utf-8'));
 			})
 			cp.stdout.on("data", (chunk: Buffer) => {
-				Log.Info("Ycmd stdout: ", chunk.toString('utf-8'));
+				Log.Debug("Ycmd stdout: ", chunk.toString('utf-8'));
 			})
 			cp.on("exit", (code, signal) => {
 				YcmServer.alive = false

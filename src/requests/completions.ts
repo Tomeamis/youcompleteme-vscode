@@ -9,7 +9,7 @@ import {CompletionItem, CompletionItemKind,
 	CompletionTriggerKind,
 	Range,
 	CancellationToken} from 'vscode'
-import {YcmLocation, YcmFileDataMapKeeper, YcmRange} from './utils'
+import {YcmLocation, YcmFileDataMapKeeper, YcmRange, isYcmExceptionResponse} from './utils'
 import {YcmServer} from '../server'
 import {Log, ExtensionGlobals} from '../utils'
 import { YcmSimpleRequest, YcmSimpleRequestArgs } from './simpleRequest';
@@ -95,6 +95,15 @@ export class YcmCFamCompletionProvider implements CompletionItemProvider
 	}
 }
 
+type CompleterErrType = "Still parsing" |
+	"not utf-8"
+
+class CompleterError
+{
+	constructor(public type: CompleterErrType)
+	{}
+}
+
 export class YcmCompletionsResponse
 {
 	candidates: YcmCandidate[]
@@ -108,6 +117,14 @@ export class YcmCompletionsResponse
 			candidate => new YcmCandidate(candidate, replaceRange)
 		)
 		//TODO: errors
+		if(this.candidates.length === 0)
+		{
+			let errs = response.errors
+			if(errs instanceof Array && errs.length > 0)
+			{
+				throw errs
+			}
+		}
 	}
 }
 
@@ -222,7 +239,28 @@ export class YcmCompletionsRequest extends YcmSimpleRequest
 	{
 		let p = super.Send(server, '/completions')
 		let res = await p
-		return new YcmCompletionsResponse(res, super.GetLocation())
+		try
+		{
+			return new YcmCompletionsResponse(res, super.GetLocation())
+		}
+		catch(err)
+		{
+			if(err instanceof Array)
+			{
+				if(err.some(item => 
+					isYcmExceptionResponse(item) && item.exception.TYPE === "RuntimeError" &&
+						item.message === "Still parsing file, no completions yet."
+				))
+				{
+					Log.Info("File already being parsed, retry after delay...")
+					//TODO: configurable delay
+					await new Promise(res => setTimeout(res, 200))
+					return this.Send(server)
+				}
+				//TODO: UTF-8
+			}
+			Log.Error("Completions err: ", err)
+		}
 	}
 
 }
