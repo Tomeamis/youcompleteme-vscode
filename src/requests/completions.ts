@@ -8,7 +8,8 @@ import {CompletionItem, CompletionItemKind,
 	TextDocument,
 	CompletionTriggerKind,
 	Range,
-	CancellationToken} from 'vscode'
+	CancellationToken,
+	window} from 'vscode'
 import {YcmLocation, YcmFileDataMapKeeper, YcmRange, isYcmExceptionResponse} from './utils'
 import {YcmServer} from '../server'
 import {Log, ExtensionGlobals} from '../utils'
@@ -257,7 +258,14 @@ export class YcmCompletionsRequest extends YcmSimpleRequest
 					await new Promise(res => setTimeout(res, 200))
 					return this.Send(server)
 				}
-				//TODO: UTF-8
+				else if(err.some(item => isYcmExceptionResponse(item) && item.exception.TYPE === "UnicodeDecodeError"))
+				{
+					Log.Error("An include file contains non-UTF-8 completion data");
+					window.showErrorMessage(
+						"Current translation unit contains completion data that is not valid UTF-8. Completions cannot be supplied",
+						{modal: false}
+					);
+				}
 			}
 			Log.Error("Completions err: ", err)
 		}
