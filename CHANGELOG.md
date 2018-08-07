@@ -5,6 +5,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [v0.4.1]
+
+- Better error handling
+
 ## [v0.4.0]
 
 - Support for C
