@@ -414,7 +414,7 @@ export class ErrorHandler
 				Log.Info("GoTo lookup failed");
 				return false
 			}
-			else if(err.message === "Still parsing file, no completions yet.")
+			else if(err.message === "Still parsing file, no completions yet." || err.message === "File already being parsed.")
 			{
 				Log.Warning("Completions not returned, file is still parsing. If you are seeing this often, try increasing reparse interval.")
 				await new Promise(res => setTimeout(res, 200))
