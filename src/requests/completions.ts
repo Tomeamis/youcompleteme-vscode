@@ -111,6 +111,12 @@ export class YcmCompletionsResponse
 
 	constructor(response: any, cursorPos: YcmLocation)
 	{
+		//in case we got nothin'
+		if(!response)
+		{
+			this.candidates = []
+			return
+		}
 		let replaceRangeStart = new YcmLocation(cursorPos)
 		replaceRangeStart.column_num = response.completion_start_column
 		let replaceRange = new YcmRange(replaceRangeStart, cursorPos);
@@ -242,7 +248,13 @@ export class YcmCompletionsRequest extends YcmSimpleRequest
 		let res = await p
 		try
 		{
-			return new YcmCompletionsResponse(res, super.GetLocation())
+			let parsedRes = new YcmCompletionsResponse(res, super.GetLocation())
+			if(parsedRes.candidates.length === 0 && !this.force_semantic && ExtensionGlobals.extConfig.fallbackToSemantic.value)
+			{
+				this.force_semantic = true
+				return this.Send(server)
+			}
+			return parsedRes
 		}
 		catch(err)
 		{
@@ -255,7 +267,7 @@ export class YcmCompletionsRequest extends YcmSimpleRequest
 				{
 					Log.Info("File already being parsed, retry after delay...")
 					//TODO: configurable delay
-					await new Promise(res => setTimeout(res, 200))
+					await new Promise(res => setTimeout(res, ExtensionGlobals.extConfig.reparseWaitDelay.value))
 					return this.Send(server)
 				}
 				else if(err.some(item => isYcmExceptionResponse(item) && item.exception.TYPE === "UnicodeDecodeError"))
@@ -265,6 +277,7 @@ export class YcmCompletionsRequest extends YcmSimpleRequest
 						"Current translation unit contains completion data that is not valid UTF-8. Completions cannot be supplied",
 						{modal: false}
 					);
+					return new YcmCompletionsResponse(undefined, super.GetLocation())
 				}
 			}
 			Log.Error("Completions err: ", err)

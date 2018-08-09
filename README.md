@@ -38,6 +38,10 @@ This extension contributes the following settings:
 * `YouCompleteMe.reparseTimeout`: After this many milliseconds with no edits, the extension will 
 	reparse the current file and add diagnostics
 * `YouCompleteMe.logLevel`: The verbosity of logging
+* `YouCompleteMe.reparseWaitDelay`: The amount of time in milliseconds to wait to retry a request
+	that was denied because the file was still parsing
+* `YouCompleteMe.fallbackToSemantic`: When set to true, if a non-semantic completions request
+	returns nothing, YCM will try to get semantic completions
 
 ## Commands
 

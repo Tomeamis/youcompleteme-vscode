@@ -2,7 +2,7 @@
   "name": "youcompleteme-vscode",
   "displayName": "youcompleteme-vscode",
   "description": "YCMD client for VSCode",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "publisher": "Tomeamis",
   "license": "MIT",
   "repository": {
@@ -113,6 +113,16 @@
             "fatal",
             "none"
           ]
+        },
+        "YouCompleteMe.reparseWaitDelay": {
+          "type": "number",
+          "default": 100,
+          "description": "The amount of time in milliseconds to wait to retry a request that was denied because the file was still parsing"
+        },
+        "YouCompleteMe.fallbackToSemantic": {
+          "type": "boolean",
+          "default": true,
+          "description": "When set to true, if a non-semantic completions request returns nothing, YCM will try to get semantic completions"
         }
       }
     },

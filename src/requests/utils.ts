@@ -417,7 +417,7 @@ export class ErrorHandler
 			else if(err.message === "Still parsing file, no completions yet." || err.message === "File already being parsed.")
 			{
 				Log.Warning("Completions not returned, file is still parsing. If you are seeing this often, try increasing reparse interval.")
-				await new Promise(res => setTimeout(res, 200))
+				await new Promise(res => setTimeout(res, ExtensionGlobals.extConfig.reparseWaitDelay.value))
 				return true
 			}
 			else

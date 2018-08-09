@@ -113,6 +113,8 @@ export class ExtensionConfig implements Disposable
 	private _triggerStrings: ConfigItemInternal<TriggerStrings>
 	private _reparseTimeout: ConfigItemInternal<number>
 	private _logLevel: ConfigItemInternal<LogLevel>
+	private _reparseWaitDelay: ConfigItemInternal<number>
+	private _fallbackToSemantic: ConfigItemInternal<boolean>
 
 	private emitter: EventEmitter<void>
 	public onDidChange: Event<void>
@@ -143,6 +145,14 @@ export class ExtensionConfig implements Disposable
 	{
 		return this._logLevel
 	}
+	public get reparseWaitDelay(): ConfigItem<number>
+	{
+		return this._reparseWaitDelay
+	}
+	public get fallbackToSemantic(): ConfigItem<boolean>
+	{
+		return this._fallbackToSemantic
+	}
 
 	constructor()
 	{
@@ -154,6 +164,8 @@ export class ExtensionConfig implements Disposable
 		this._triggerStrings = new ConfigItemInternal<TriggerStrings>()
 		this._reparseTimeout = new ConfigItemInternal<number>()
 		this._logLevel = new ConfigItemInternal<LogLevel>()
+		this._reparseWaitDelay = new ConfigItemInternal<number>()
+		this._fallbackToSemantic = new ConfigItemInternal<boolean>()
 		this.UpdateConfig()
 		workspace.onDidChangeConfiguration(event => {
 			if(event.affectsConfiguration(ExtensionConfig.sectionName))
@@ -170,6 +182,8 @@ export class ExtensionConfig implements Disposable
 		this._triggerStrings.dispose()
 		this._reparseTimeout.dispose()
 		this._logLevel.dispose()
+		this._reparseWaitDelay.dispose()
+		this._fallbackToSemantic.dispose()
 	}
 
 	public UpdateConfig()
@@ -182,7 +196,9 @@ export class ExtensionConfig implements Disposable
 			this._filetypes.onDidChangeValue(cb),
 			this._reparseTimeout.onDidChangeValue(cb),
 			this._logLevel.onDidChangeValue(cb),
-			this._triggerStrings.onDidChangeValue(cb)
+			this._triggerStrings.onDidChangeValue(cb),
+			this._reparseWaitDelay.onDidChangeValue(cb),
+			this._fallbackToSemantic.onDidChangeValue(cb)
 		]
 		try
 		{
@@ -193,6 +209,8 @@ export class ExtensionConfig implements Disposable
 			this._reparseTimeout.value = config.get<number>("reparseTimeout")
 			this._logLevel.value = LogLevelFromString(config.get<string>("logLevel"))
 			this._triggerStrings.value = config.get<TriggerStrings>("triggerStrings")
+			this._reparseWaitDelay.value = config.get<number>("reparseWaitDelay")
+			this._fallbackToSemantic.value = config.get<boolean>("fallbackToSemantic")
 		}
 		finally
 		{

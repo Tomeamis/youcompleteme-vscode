@@ -5,6 +5,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [v0.4.2]
+
+- Make the time to wait for the file to finish parsing configurable (`YouCompleteMe.reparseWaitDelay`)
+- Add a config option to try semantic completion if the identifier engine fails (`YouCompleteMe.fallbackToSemantic`)
+
 ## [v0.4.1]
 
 - Better error handling
