@@ -418,6 +418,7 @@ export class ErrorHandler
 			{
 				Log.Warning("Completions not returned, file is still parsing. If you are seeing this often, try increasing reparse interval.")
 				await new Promise(res => setTimeout(res, 200))
+				return true
 			}
 			else
 			{
