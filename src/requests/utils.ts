@@ -426,6 +426,15 @@ export class ErrorHandler
 				throw err
 			}
 		}
+		else if(type === "UnicodeDecodeError")
+		{
+			Log.Error("An include file contains non-UTF-8 completion data");
+			window.showErrorMessage(
+				"Current translation unit contains completion data that is not valid UTF-8. Completions cannot be supplied",
+				{modal: false}
+			);
+			return false
+		}
 		else
 		{
 			Log.Error("HandleRequestError: Unknown error: ", err)
