@@ -87,12 +87,39 @@ export class YcmCFamCompletionProvider implements CompletionItemProvider
 		tracker.CompletionRequestDone()
 		
 		let req = new YcmCompletionsRequest(YcmLocation.FromVscodePosition(document, position), options);
+		
+		let result = await this.CompletionResponseToCompletionList(await req.Send(await pServer))
 
-		let compResult = await req.Send(await pServer)
-		//TODO: figure out if the list is really incomplete
-		let result = new CompletionList(await Promise.all(compResult.candidates.map(x => x.ToVscodeCompletionItem())), true);
+		//filter out items that would be filtered by vscode anyways
+		result.items = result.items.filter(item => {
+			//empty ranges are unfiltered
+			if(item.range && item.range.isEmpty)
+			{
+				return true
+			}
+			let prefix = document.getText(item.range)
+			let regexParts = prefix.split("")
+			{
+				let start = regexParts[0]
+				regexParts[0] = `(^${start}|[a-z]${start.toUpperCase()}|_${start})`
+			}
+			let regex = new RegExp(regexParts.join(".*"))
+			return regex.test(item.filterText || item.label)
+		})
+
+		if(result.items.length === 0)
+		{
+			result = await this.CompletionResponseToCompletionList(await req.RetryOnNoCompletions(await pServer))
+		}
 		
 		return result;
+	}
+
+	private async CompletionResponseToCompletionList(response: YcmCompletionsResponse): Promise<CompletionList>
+	{
+		let itemPromises = response.candidates.map(x => x.ToVscodeCompletionItem())
+		//TODO: figure out if the list is really incomplete
+		return new CompletionList(await Promise.all(itemPromises), true);
 	}
 }
 
@@ -242,6 +269,16 @@ export class YcmCompletionsRequest extends YcmSimpleRequest
 		}
 	}
 
+	public RetryOnNoCompletions(server: YcmServer): Promise<YcmCompletionsResponse>
+	{
+		if(!this.force_semantic && ExtensionGlobals.extConfig.fallbackToSemantic.value)
+		{
+			this.force_semantic = true
+			return this.Send(server)
+		}
+		return Promise.resolve(new YcmCompletionsResponse(undefined, this.GetLocation()))
+	}
+
 	public async Send(server: YcmServer): Promise<YcmCompletionsResponse>
 	{
 		let p = super.Send(server, '/completions')
@@ -249,11 +286,6 @@ export class YcmCompletionsRequest extends YcmSimpleRequest
 		try
 		{
 			let parsedRes = new YcmCompletionsResponse(res, super.GetLocation())
-			if(parsedRes.candidates.length === 0 && !this.force_semantic && ExtensionGlobals.extConfig.fallbackToSemantic.value)
-			{
-				this.force_semantic = true
-				return this.Send(server)
-			}
 			return parsedRes
 		}
 		catch(err)
