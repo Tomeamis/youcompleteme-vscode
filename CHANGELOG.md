@@ -5,6 +5,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [v0.4.4]
+
+- Make the fallback to semantic completion more efficient
+
 ## [v0.4.2]
 
 - Make the time to wait for the file to finish parsing configurable (`YouCompleteMe.reparseWaitDelay`)
