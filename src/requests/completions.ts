@@ -110,6 +110,11 @@ export class YcmCFamCompletionProvider implements CompletionItemProvider
 		if(result.items.length === 0)
 		{
 			result = await this.CompletionResponseToCompletionList(await req.RetryOnNoCompletions(await pServer))
+			//only start using semantic if it succeeds
+			if(result.items.length !== 0)
+			{
+				tracker.NonSemanticCompletionFailed();
+			}
 		}
 		
 		return result;

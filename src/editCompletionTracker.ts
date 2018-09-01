@@ -128,7 +128,7 @@ export class EditCompletionTracker
 	ShouldCompleteSemantic(doc: TextDocument, pos: Position)
 	{
 		Log.Debug("Completing semantic: ", this.completingSemantic)
-		this.completingSemantic = !this.IsCompletionInvokedByEdit(doc, pos) || this.completingSemantic
+		this.completingSemantic = this.completingSemantic || !this.IsCompletionInvokedByEdit(doc, pos)
 		return this.completingSemantic
 	}
 
@@ -136,6 +136,14 @@ export class EditCompletionTracker
 	{
 		Log.Debug("IsCompletingSemantic: ", this.completingSemantic)
 		return this.completingSemantic
+	}
+
+	/**
+	 * Informs the tracket that non-semantic completion failed and therefore should switch to semantic
+	 */
+	NonSemanticCompletionFailed(): void
+	{
+		this.completingSemantic = true;
 	}
 
 	private IsCompletionInvokedByEdit(doc: TextDocument, pos: Position): boolean
