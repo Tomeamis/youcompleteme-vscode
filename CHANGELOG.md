@@ -5,6 +5,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [v0.4.5]
+
+- Create .vscode directory if it doesn't exist and extra_conf black/whitelist should be saved
+
 ## [v0.4.4]
 
 - Make the fallback to semantic completion more efficient

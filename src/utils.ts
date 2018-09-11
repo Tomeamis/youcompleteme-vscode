@@ -100,7 +100,7 @@ class LocalSettings
 
 	public SetExtraConfWhitelist(val: string[])
 	{
-		this.store.SetVal(this.names.extraConfWhitelist, val)
+		this.store.SetVal(this.names.extraConfWhitelist, val, true)
 	}
 
 	public get extraConfBlacklist(): Promise<string[]>
@@ -110,7 +110,7 @@ class LocalSettings
 
 	public SetExtraConfBlacklist(val: string[])
 	{
-		this.store.SetVal(this.names.extraConfBlacklist, val)
+		this.store.SetVal(this.names.extraConfBlacklist, val, true)
 	}
 
 }
