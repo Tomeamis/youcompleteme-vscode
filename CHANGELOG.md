@@ -5,6 +5,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [v0.4.6]
+
+- Fix a bug with completion filtering. Previously, for example `PIN` would be filtered when `Pi` was typed
+
 ## [v0.4.5]
 
 - Create .vscode directory if it doesn't exist and extra_conf black/whitelist should be saved
