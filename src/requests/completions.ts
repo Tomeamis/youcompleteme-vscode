@@ -102,6 +102,10 @@ export class YcmCFamCompletionProvider implements CompletionItemProvider
 			{
 				let start = regexParts[0]
 				regexParts[0] = `(^${start}|[a-z]${start.toUpperCase()}|_${start})`
+				for(let i = 1; i < regexParts.length; ++i)
+				{
+					regexParts[i] = `(${regexParts[i].toLowerCase()}|${regexParts[i].toUpperCase()})`
+				}
 			}
 			let regex = new RegExp(regexParts.join(".*"))
 			return regex.test(item.filterText || item.label)
